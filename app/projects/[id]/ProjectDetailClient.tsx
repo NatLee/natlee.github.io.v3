@@ -24,19 +24,20 @@ import {
     Lightbulb,
     Award,
     Play,
-    Pause
+    Pause,
+    Activity,
+    Layers,
+    FileText,
+    LineChart
 } from "lucide-react";
 import { useEffect, useRef, useState } from 'react';
 import { getProjectById } from '@/data/projects';
 
-// Define the props interface based on what's passed
 interface ProjectDetailClientProps {
     project: ReturnType<typeof getProjectById>;
 }
 
 export default function ProjectDetailClient({ project }: ProjectDetailClientProps) {
-    // If project is undefined (e.g. from notFound), handle gracefully or let parent handle
-    // In strict mode, we expect project to be defined here.
     if (!project) return null;
 
     return (
@@ -53,14 +54,29 @@ function ProjectContent({ project }: { project: NonNullable<ReturnType<typeof ge
     const animationRef = useRef<number>(0);
     const [isPlaying, setIsPlaying] = useState(true);
     const dataRef = useRef<number[]>([]);
+    const [dayHigh, setDayHigh] = useState(0);
+    const [dayLow, setDayLow] = useState(0);
 
     const isPositive = change >= 0;
     const symbol = project.title.replace(/\s+/g, '').toUpperCase().slice(0, 6);
 
+    // Initialize price data
+    useEffect(() => {
+        const basePrice = 50 + Math.random() * 150;
+        setPrice(basePrice);
+        setDayHigh(basePrice * 1.05);
+        setDayLow(basePrice * 0.95);
+    }, []);
+
     // Simulate price changes
     useEffect(() => {
         const interval = setInterval(() => {
-            setPrice(prev => Math.max(50, prev + (Math.random() - 0.45) * 5));
+            setPrice(prev => {
+                const newPrice = Math.max(50, prev + (Math.random() - 0.45) * 5);
+                setDayHigh(h => Math.max(h, newPrice));
+                setDayLow(l => Math.min(l, newPrice));
+                return newPrice;
+            });
             setChange(prev => Math.max(-20, Math.min(40, prev + (Math.random() - 0.45) * 2)));
         }, 3000);
         return () => clearInterval(interval);
@@ -74,10 +90,9 @@ function ProjectContent({ project }: { project: NonNullable<ReturnType<typeof ge
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        // Initialize data
         if (dataRef.current.length === 0) {
             let value = 100;
-            for (let i = 0; i < 60; i++) {
+            for (let i = 0; i < 80; i++) {
                 value *= (1 + (Math.random() - 0.45) * 0.03);
                 value = Math.max(50, Math.min(150, value));
                 dataRef.current.push(value);
@@ -89,6 +104,17 @@ function ProjectContent({ project }: { project: NonNullable<ReturnType<typeof ge
             const height = canvas.height;
 
             ctx.clearRect(0, 0, width, height);
+
+            // Draw grid lines
+            ctx.strokeStyle = 'rgba(39, 39, 42, 0.5)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 5; i++) {
+                const y = (height / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
 
             const data = dataRef.current;
             const min = Math.min(...data) * 0.98;
@@ -106,7 +132,7 @@ function ProjectContent({ project }: { project: NonNullable<ReturnType<typeof ge
             ctx.closePath();
 
             const gradient = ctx.createLinearGradient(0, 0, 0, height);
-            gradient.addColorStop(0, isPositive ? "rgba(34, 197, 94, 0.3)" : "rgba(239, 68, 68, 0.3)");
+            gradient.addColorStop(0, isPositive ? "rgba(34, 197, 94, 0.25)" : "rgba(239, 68, 68, 0.25)");
             gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
             ctx.fillStyle = gradient;
             ctx.fill();
@@ -120,15 +146,21 @@ function ProjectContent({ project }: { project: NonNullable<ReturnType<typeof ge
                 else ctx.lineTo(x, y);
             });
             ctx.strokeStyle = isPositive ? "#22c55e" : "#ef4444";
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.5;
             ctx.stroke();
 
-            // Add new point if playing
+            // Draw current price dot
+            const lastY = height - ((data[data.length - 1] - min) / (max - min)) * height;
+            ctx.beginPath();
+            ctx.arc(width - 2, lastY, 4, 0, Math.PI * 2);
+            ctx.fillStyle = isPositive ? "#22c55e" : "#ef4444";
+            ctx.fill();
+
             if (isPlaying) {
                 const lastVal = data[data.length - 1];
                 const newVal = lastVal * (1 + (Math.random() - 0.45) * 0.02);
                 dataRef.current.push(Math.max(50, Math.min(150, newVal)));
-                if (dataRef.current.length > 100) {
+                if (dataRef.current.length > 120) {
                     dataRef.current.shift();
                 }
             }
@@ -141,13 +173,13 @@ function ProjectContent({ project }: { project: NonNullable<ReturnType<typeof ge
         return () => cancelAnimationFrame(animationRef.current);
     }, [isPositive, isPlaying]);
 
-    const statusConfig: Record<string, { color: string, bg: string, border: string, label: string }> = {
-        "In Progress": { color: "text-stock-green", bg: "bg-stock-green/20", border: "border-stock-green/30", label: "ACTIVE" },
-        "Completed": { color: "text-stock-accent", bg: "bg-stock-accent/20", border: "border-stock-accent/30", label: "COMPLETED" },
-        "Archived": { color: "text-stock-muted", bg: "bg-stock-muted/20", border: "border-stock-muted/30", label: "ARCHIVED" },
+    const statusConfig: Record<string, { color: string, bg: string, border: string, label: string, icon: React.ReactNode }> = {
+        "In Progress": { color: "text-stock-green", bg: "bg-stock-green/20", border: "border-stock-green/30", label: "ACTIVE", icon: <Activity size={10} /> },
+        "Completed": { color: "text-stock-accent", bg: "bg-stock-accent/20", border: "border-stock-accent/30", label: "COMPLETED", icon: <CheckCircle2 size={10} /> },
+        "Archived": { color: "text-stock-muted", bg: "bg-stock-muted/20", border: "border-stock-muted/30", label: "ARCHIVED", icon: <Clock size={10} /> },
     };
 
-    const status = statusConfig[project.status] || { color: "text-stock-muted", bg: "bg-stock-muted/20", border: "border-stock-muted/30", label: "N/A" };
+    const status = statusConfig[project.status] || statusConfig["Archived"];
 
     return (
         <div className="space-y-6 pb-8">
@@ -161,95 +193,78 @@ function ProjectContent({ project }: { project: NonNullable<ReturnType<typeof ge
                     className="inline-flex items-center gap-2 text-stock-muted hover:text-stock-green transition-colors text-sm group"
                 >
                     <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-                    Back to Portfolio
+                    Back to Watchlist
                 </Link>
             </motion.div>
 
-            {/* Hero Section with Chart */}
+            {/* Stock Quote Header */}
             <motion.div
-                className="relative overflow-hidden rounded-2xl bg-stock-panel border border-stock-border"
+                className="quote-header"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
             >
                 {/* Background Chart */}
-                <div className="absolute inset-0">
+                <div className="absolute inset-0 opacity-30">
                     <canvas
                         ref={canvasRef}
-                        width={800}
+                        width={1000}
                         height={300}
-                        className="w-full h-full object-cover opacity-50"
+                        className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-r from-stock-panel via-stock-panel/80 to-transparent" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-stock-panel via-transparent to-stock-panel/60" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-stock-panel via-transparent to-stock-panel" />
                 </div>
 
-                <div className="relative p-6 lg:p-8">
+                <div className="relative">
                     <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
-                        {/* Left: Project Info */}
+                        {/* Left: Symbol & Info */}
                         <div className="flex-1 space-y-4">
-                            {/* Badges */}
-                            <div className="flex flex-wrap items-center gap-2">
-                                <span className={`text-[10px] font-mono px-2.5 py-1 rounded-lg border ${status.bg} ${status.color} ${status.border}`}>
-                                    {status.label}
-                                </span>
-                                <span className="text-[10px] font-mono px-2.5 py-1 rounded-lg border bg-stock-border/50 text-stock-muted border-stock-border">
-                                    {project.category}
-                                </span>
-                                {project.opensource && (
-                                    <span className="text-[10px] font-mono px-2.5 py-1 rounded-lg border bg-stock-accent/20 text-stock-accent border-stock-accent/30 flex items-center gap-1">
-                                        <Github size={10} />
-                                        OPEN SOURCE
-                                    </span>
-                                )}
-                                {project.featured && (
-                                    <span className="text-[10px] font-mono px-2.5 py-1 rounded-lg border bg-stock-gold/20 text-stock-gold border-stock-gold/30 flex items-center gap-1">
-                                        <Star size={10} fill="currentColor" />
-                                        FEATURED
-                                    </span>
-                                )}
-                            </div>
-
-                            {/* Symbol & Title */}
-                            <div>
-                                <div className="flex items-center gap-3 mb-2">
-                                    <span className="text-stock-green font-mono font-bold text-lg">{symbol}</span>
-                                    <div className="h-6 w-px bg-stock-border" />
-                                    <span className="text-stock-muted text-sm">Analysis Report</span>
+                            {/* Symbol Header */}
+                            <div className="flex items-center gap-4">
+                                <div className="w-16 h-16 rounded-xl glass-subtle flex items-center justify-center">
+                                    <span className="text-2xl font-mono font-bold text-stock-green">{symbol.slice(0, 2)}</span>
                                 </div>
-                                <h1 className="text-3xl lg:text-4xl font-bold text-stock-text mb-2">
-                                    {project.title}
-                                </h1>
-                                <p className="text-stock-muted text-lg">
-                                    {project.subtitle}
-                                </p>
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-stock-green font-mono font-bold text-xl">{symbol}</span>
+                                        <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border flex items-center gap-1 ${status.bg} ${status.color} ${status.border}`}>
+                                            {status.icon}
+                                            {status.label}
+                                        </span>
+                                        {project.featured && (
+                                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border bg-stock-gold/20 text-stock-gold border-stock-gold/30 flex items-center gap-1">
+                                                <Star size={10} fill="currentColor" />
+                                                FEATURED
+                                            </span>
+                                        )}
+                                    </div>
+                                    <h1 className="text-2xl lg:text-3xl font-bold text-stock-text">
+                                        {project.title}
+                                    </h1>
+                                </div>
                             </div>
 
-                            {/* Meta Info */}
-                            <div className="flex flex-wrap items-center gap-4 text-sm text-stock-muted">
-                                <span className="flex items-center gap-2 bg-stock-bg/50 px-3 py-1.5 rounded-lg">
-                                    <Clock size={14} className="text-stock-accent" />
-                                    {project.timeline.duration}
-                                </span>
+                            <p className="text-stock-muted text-lg max-w-2xl">
+                                {project.subtitle}
+                            </p>
+
+                            {/* Quick Stats Bar */}
+                            <div className="flex flex-wrap items-center gap-3">
+                                <QuickStat icon={<Clock size={12} />} label="Duration" value={project.timeline.duration} />
                                 {project.company && (
-                                    <span className="flex items-center gap-2 bg-stock-bg/50 px-3 py-1.5 rounded-lg">
-                                        <Building2 size={14} className="text-stock-accent" />
-                                        {project.company}
-                                    </span>
+                                    <QuickStat icon={<Building2 size={12} />} label="Company" value={project.company} />
                                 )}
-                                <span className="flex items-center gap-2 bg-stock-bg/50 px-3 py-1.5 rounded-lg">
-                                    <BarChart3 size={14} className="text-stock-accent" />
-                                    {project.role}
-                                </span>
+                                <QuickStat icon={<BarChart3 size={12} />} label="Role" value={project.role} />
+                                <QuickStat icon={<Layers size={12} />} label="Tech Stack" value={`${project.technologies.length} tools`} />
                             </div>
                         </div>
 
                         {/* Right: Price Display */}
-                        <div className="bg-stock-bg/80 backdrop-blur-sm rounded-xl p-5 border border-stock-border min-w-[200px]">
+                        <div className="glass-card p-5 min-w-[220px]">
                             <div className="flex items-center justify-between mb-3">
-                                <span className="text-stock-muted text-xs font-mono">Project Value</span>
+                                <span className="text-stock-muted text-xs font-mono uppercase tracking-wider">Project Value</span>
                                 <button
                                     onClick={() => setIsPlaying(!isPlaying)}
-                                    className="p-1.5 bg-stock-border/50 rounded-lg hover:bg-stock-border transition-colors"
+                                    className="p-1.5 glass-subtle rounded-lg hover:bg-stock-border transition-colors"
                                 >
                                     {isPlaying ? <Pause size={12} className="text-stock-muted" /> : <Play size={12} className="text-stock-green" />}
                                 </button>
@@ -259,25 +274,36 @@ function ProjectContent({ project }: { project: NonNullable<ReturnType<typeof ge
                             </div>
                             <div className={`flex items-center gap-2 mt-2 ${isPositive ? 'text-stock-green' : 'text-stock-red'}`}>
                                 {isPositive ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-                                <span className="font-mono text-sm">{isPositive ? '+' : ''}{change.toFixed(2)}%</span>
-                                <span className="text-stock-muted text-xs">24h</span>
+                                <span className="font-mono">{isPositive ? '+' : ''}{change.toFixed(2)}%</span>
+                                <span className="text-stock-muted text-xs">Today</span>
+                            </div>
+
+                            <div className="mt-4 pt-4 border-t border-stock-border/30 grid grid-cols-2 gap-3 text-xs">
+                                <div>
+                                    <div className="text-stock-muted">Day High</div>
+                                    <div className="text-stock-green font-mono">${dayHigh.toFixed(2)}</div>
+                                </div>
+                                <div>
+                                    <div className="text-stock-muted">Day Low</div>
+                                    <div className="text-stock-red font-mono">${dayLow.toFixed(2)}</div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Action Links */}
                     {(project.links.github || project.links.demo) && (
-                        <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-stock-border/50">
+                        <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-stock-border/30">
                             {project.links.github && (
                                 <a
                                     href={project.links.github}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-2 px-4 py-2.5 bg-stock-bg border border-stock-border rounded-xl text-stock-text hover:border-stock-green hover:text-stock-green transition-colors"
+                                    className="flex items-center gap-2 px-4 py-2.5 glass-subtle rounded-xl text-stock-text hover:border-stock-green hover:text-stock-green transition-colors border border-transparent"
                                 >
                                     <Github size={16} />
                                     View Source
-                                    <ExternalLink size={12} className="ml-1 opacity-50" />
+                                    <ExternalLink size={12} className="opacity-50" />
                                 </a>
                             )}
                             {project.links.demo && (
@@ -296,107 +322,135 @@ function ProjectContent({ project }: { project: NonNullable<ReturnType<typeof ge
                 </div>
             </motion.div>
 
-            {/* Description Card */}
+            {/* Fundamentals Grid */}
             <motion.div
-                className="stock-card"
+                className="fundamentals-grid"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
             >
-                <div className="flex items-center gap-2 mb-4">
-                    <Lightbulb size={18} className="text-stock-gold" />
-                    <h2 className="text-lg font-bold text-stock-text">Overview</h2>
+                <FundamentalItem
+                    icon={<Calendar size={16} />}
+                    label="Started"
+                    value={project.timeline.start || "N/A"}
+                />
+                <FundamentalItem
+                    icon={<Clock size={16} />}
+                    label="Duration"
+                    value={project.timeline.duration}
+                    highlight
+                />
+                <FundamentalItem
+                    icon={<Code2 size={16} />}
+                    label="Tech Count"
+                    value={project.technologies.length.toString()}
+                />
+                <FundamentalItem
+                    icon={<Target size={16} />}
+                    label="Features"
+                    value={project.features.length.toString()}
+                />
+            </motion.div>
+
+            {/* Fundamental Analysis Section */}
+            <motion.div
+                className="analysis-section"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+            >
+                <div className="analysis-header">
+                    <FileText size={18} className="text-stock-accent" />
+                    <h2 className="analysis-title">Fundamental Analysis</h2>
+                    <span className="text-[10px] text-stock-muted font-mono ml-auto">OVERVIEW</span>
                 </div>
-                <p className="text-stock-muted leading-relaxed">
+                <p className="analysis-content text-base">
                     {project.longDescription}
                 </p>
             </motion.div>
 
-            {/* Analysis Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Features */}
-                <motion.div
-                    className="stock-card"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                >
+            {/* Order Book Style: Features vs Challenges */}
+            <motion.div
+                className="orderbook-container"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+            >
+                {/* Buy Side - Features */}
+                <div className="orderbook-side buy">
                     <div className="flex items-center gap-2 mb-4">
-                        <Target size={18} className="text-stock-green" />
-                        <h2 className="text-lg font-bold text-stock-text">Key Features</h2>
+                        <TrendingUp size={16} className="text-stock-green" />
+                        <h3 className="font-bold text-stock-text">Key Features</h3>
+                        <span className="text-[10px] text-stock-green font-mono ml-auto">BUY SIGNALS</span>
                     </div>
-
-                    <div className="space-y-3">
+                    <div className="space-y-1">
                         {project.features.map((feature, i) => (
                             <motion.div
                                 key={i}
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.2 + i * 0.05 }}
-                                className="flex items-start gap-3 p-3 bg-stock-bg/50 rounded-xl border border-stock-border/50"
+                                transition={{ delay: 0.2 + i * 0.03 }}
+                                className="orderbook-item"
                             >
-                                <div className="w-7 h-7 rounded-lg bg-stock-green/10 flex items-center justify-center flex-shrink-0">
-                                    <CheckCircle2 size={14} className="text-stock-green" />
+                                <div className="w-6 h-6 rounded-md bg-stock-green/20 flex items-center justify-center flex-shrink-0">
+                                    <CheckCircle2 size={12} className="text-stock-green" />
                                 </div>
-                                <p className="text-stock-text text-sm">{feature}</p>
+                                <p className="text-stock-text text-sm flex-1">{feature}</p>
                             </motion.div>
                         ))}
                     </div>
-                </motion.div>
+                </div>
 
-                {/* Challenges */}
-                <motion.div
-                    className="stock-card"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                >
+                {/* Sell Side - Challenges */}
+                <div className="orderbook-side sell">
                     <div className="flex items-center gap-2 mb-4">
-                        <Shield size={18} className="text-stock-red" />
-                        <h2 className="text-lg font-bold text-stock-text">Challenges</h2>
+                        <Shield size={16} className="text-stock-red" />
+                        <h3 className="font-bold text-stock-text">Challenges</h3>
+                        <span className="text-[10px] text-stock-red font-mono ml-auto">RISK FACTORS</span>
                     </div>
-
-                    <div className="space-y-3">
+                    <div className="space-y-1">
                         {project.challenges.map((challenge, i) => (
                             <motion.div
                                 key={i}
-                                initial={{ opacity: 0, x: -10 }}
+                                initial={{ opacity: 0, x: 10 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.3 + i * 0.05 }}
-                                className="flex items-start gap-3 p-3 bg-stock-bg/50 rounded-xl border border-stock-border/50"
+                                transition={{ delay: 0.2 + i * 0.03 }}
+                                className="orderbook-item"
                             >
-                                <div className="w-7 h-7 rounded-lg bg-stock-red/10 flex items-center justify-center flex-shrink-0">
+                                <div className="w-6 h-6 rounded-md bg-stock-red/20 flex items-center justify-center flex-shrink-0">
                                     <span className="text-stock-red font-mono text-xs font-bold">!</span>
                                 </div>
-                                <p className="text-stock-text text-sm">{challenge}</p>
+                                <p className="text-stock-text text-sm flex-1">{challenge}</p>
                             </motion.div>
                         ))}
                     </div>
-                </motion.div>
+                </div>
+            </motion.div>
 
+            {/* Solutions & Results */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Solutions */}
                 <motion.div
-                    className="stock-card"
+                    className="analysis-section"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
+                    transition={{ delay: 0.25 }}
                 >
-                    <div className="flex items-center gap-2 mb-4">
+                    <div className="analysis-header">
                         <Crosshair size={18} className="text-stock-accent" />
-                        <h2 className="text-lg font-bold text-stock-text">Solutions</h2>
+                        <h2 className="analysis-title">Strategic Solutions</h2>
                     </div>
-
                     <div className="space-y-3">
                         {project.solutions.map((solution, i) => (
                             <motion.div
                                 key={i}
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.4 + i * 0.05 }}
-                                className="flex items-start gap-3 p-3 bg-stock-bg/50 rounded-xl border border-stock-border/50"
+                                transition={{ delay: 0.25 + i * 0.03 }}
+                                className="flex items-start gap-3 p-3 glass-subtle rounded-lg"
                             >
-                                <div className="w-7 h-7 rounded-lg bg-stock-accent/10 flex items-center justify-center flex-shrink-0">
-                                    <Zap size={14} className="text-stock-accent" />
+                                <div className="w-6 h-6 rounded-md bg-stock-accent/20 flex items-center justify-center flex-shrink-0">
+                                    <Zap size={12} className="text-stock-accent" />
                                 </div>
                                 <p className="text-stock-text text-sm">{solution}</p>
                             </motion.div>
@@ -406,27 +460,27 @@ function ProjectContent({ project }: { project: NonNullable<ReturnType<typeof ge
 
                 {/* Results */}
                 <motion.div
-                    className="stock-card"
+                    className="analysis-section glass-success"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
+                    transition={{ delay: 0.3 }}
                 >
-                    <div className="flex items-center gap-2 mb-4">
-                        <Award size={18} className="text-stock-gold" />
-                        <h2 className="text-lg font-bold text-stock-text">Results</h2>
+                    <div className="analysis-header">
+                        <Award size={18} className="text-stock-green" />
+                        <h2 className="analysis-title">Performance Results</h2>
+                        <span className="text-[10px] text-stock-green font-mono ml-auto">OUTPERFORM</span>
                     </div>
-
                     <div className="space-y-3">
                         {project.results.map((result, i) => (
                             <motion.div
                                 key={i}
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.5 + i * 0.05 }}
-                                className="flex items-start gap-3 p-3 bg-stock-green/5 rounded-xl border border-stock-green/20"
+                                transition={{ delay: 0.3 + i * 0.03 }}
+                                className="flex items-start gap-3 p-3 bg-stock-green/10 rounded-lg border border-stock-green/20"
                             >
-                                <div className="w-7 h-7 rounded-lg bg-stock-green/20 flex items-center justify-center flex-shrink-0">
-                                    <TrendingUp size={14} className="text-stock-green" />
+                                <div className="w-6 h-6 rounded-md bg-stock-green/20 flex items-center justify-center flex-shrink-0">
+                                    <TrendingUp size={12} className="text-stock-green" />
                                 </div>
                                 <p className="text-stock-green text-sm">{result}</p>
                             </motion.div>
@@ -437,24 +491,24 @@ function ProjectContent({ project }: { project: NonNullable<ReturnType<typeof ge
 
             {/* Technologies */}
             <motion.div
-                className="stock-card"
+                className="analysis-section"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
+                transition={{ delay: 0.35 }}
             >
-                <div className="flex items-center gap-2 mb-4">
+                <div className="analysis-header">
                     <Code2 size={18} className="text-stock-cyan" />
-                    <h2 className="text-lg font-bold text-stock-text">Tech Stack</h2>
+                    <h2 className="analysis-title">Tech Stack Holdings</h2>
+                    <span className="text-[10px] text-stock-muted font-mono ml-auto">{project.technologies.length} POSITIONS</span>
                 </div>
-
                 <div className="flex flex-wrap gap-2">
                     {project.technologies.map((tech, i) => (
                         <motion.span
                             key={tech}
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.6 + i * 0.03 }}
-                            className="px-3 py-2 bg-stock-cyan/10 text-stock-cyan text-sm rounded-xl font-mono border border-stock-cyan/20 hover:bg-stock-cyan/20 transition-colors"
+                            transition={{ delay: 0.35 + i * 0.02 }}
+                            className="px-3 py-2 glass-subtle text-stock-cyan text-sm rounded-lg font-mono border border-stock-cyan/20 hover:bg-stock-cyan/10 transition-colors cursor-default"
                         >
                             {tech}
                         </motion.span>
@@ -466,52 +520,41 @@ function ProjectContent({ project }: { project: NonNullable<ReturnType<typeof ge
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Timeline */}
                 <motion.div
-                    className="stock-card"
+                    className="glass-card p-5"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.7 }}
+                    transition={{ delay: 0.4 }}
                 >
                     <div className="flex items-center gap-2 mb-4">
-                        <Calendar size={18} className="text-stock-accent" />
-                        <h2 className="text-lg font-bold text-stock-text">Timeline</h2>
+                        <LineChart size={18} className="text-stock-accent" />
+                        <h2 className="text-lg font-bold text-stock-text">Project Timeline</h2>
                     </div>
-
                     <div className="space-y-3">
-                        <div className="flex justify-between items-center p-3 bg-stock-bg/50 rounded-xl">
-                            <span className="text-stock-muted text-sm">Start Date</span>
-                            <span className="text-stock-text font-mono">{project.timeline.start}</span>
-                        </div>
+                        <TimelineRow label="Entry Date" value={project.timeline.start || "N/A"} />
                         {project.timeline.end && (
-                            <div className="flex justify-between items-center p-3 bg-stock-bg/50 rounded-xl">
-                                <span className="text-stock-muted text-sm">End Date</span>
-                                <span className="text-stock-text font-mono">{project.timeline.end}</span>
-                            </div>
+                            <TimelineRow label="Exit Date" value={project.timeline.end} />
                         )}
-                        <div className="flex justify-between items-center p-3 bg-stock-green/5 rounded-xl border border-stock-green/20">
-                            <span className="text-stock-muted text-sm">Duration</span>
-                            <span className="text-stock-green font-mono font-bold">{project.timeline.duration}</span>
-                        </div>
+                        <TimelineRow label="Holding Period" value={project.timeline.duration} highlight />
                     </div>
                 </motion.div>
 
                 {/* Team */}
                 {project.team && project.team.length > 0 && (
                     <motion.div
-                        className="stock-card"
+                        className="glass-card p-5"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.8 }}
+                        transition={{ delay: 0.45 }}
                     >
                         <div className="flex items-center gap-2 mb-4">
                             <Users size={18} className="text-stock-accent" />
-                            <h2 className="text-lg font-bold text-stock-text">Team</h2>
+                            <h2 className="text-lg font-bold text-stock-text">Team Composition</h2>
                         </div>
-
                         <div className="flex flex-wrap gap-2">
                             {project.team.map((member, i) => (
                                 <span
                                     key={i}
-                                    className="px-3 py-2 bg-stock-bg/50 text-stock-text text-sm rounded-xl border border-stock-border/50"
+                                    className="px-3 py-2 glass-subtle text-stock-text text-sm rounded-lg"
                                 >
                                     {member}
                                 </span>
@@ -520,6 +563,47 @@ function ProjectContent({ project }: { project: NonNullable<ReturnType<typeof ge
                     </motion.div>
                 )}
             </div>
+        </div>
+    );
+}
+
+function QuickStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+    return (
+        <div className="flex items-center gap-2 glass-subtle px-3 py-2 rounded-lg text-sm">
+            <span className="text-stock-accent">{icon}</span>
+            <span className="text-stock-muted">{label}:</span>
+            <span className="text-stock-text font-medium">{value}</span>
+        </div>
+    );
+}
+
+function FundamentalItem({
+    icon,
+    label,
+    value,
+    highlight
+}: {
+    icon: React.ReactNode;
+    label: string;
+    value: string;
+    highlight?: boolean;
+}) {
+    return (
+        <div className="fundamental-item">
+            <div className={`flex justify-center mb-2 ${highlight ? "text-stock-green" : "text-stock-muted"}`}>
+                {icon}
+            </div>
+            <div className="fundamental-label">{label}</div>
+            <div className={`fundamental-value ${highlight ? "positive" : ""}`}>{value}</div>
+        </div>
+    );
+}
+
+function TimelineRow({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+    return (
+        <div className={`flex justify-between items-center p-3 rounded-lg ${highlight ? 'bg-stock-green/10 border border-stock-green/20' : 'glass-subtle'}`}>
+            <span className="text-stock-muted text-sm">{label}</span>
+            <span className={`font-mono ${highlight ? 'text-stock-green font-bold' : 'text-stock-text'}`}>{value}</span>
         </div>
     );
 }

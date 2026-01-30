@@ -6,6 +6,7 @@ import { transformExperienceToStockData, StockDataPoint } from '@/utils/experien
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { FaBuilding, FaBriefcase, FaCalendarAlt, FaMapMarkerAlt, FaHistory } from 'react-icons/fa';
+import { CompanyLogoSimple } from './CompanyLogo';
 
 // Helper for MA calculation
 const calculateSMA = (data: StockDataPoint[], period: number, index: number) => {
@@ -262,98 +263,127 @@ export function ExperienceChart() {
     };
 
     return (
-        <div className="w-full space-y-8">
+        <div className="w-full space-y-6">
             {/* Chart Section */}
-            <div
-                ref={containerRef}
-                className="h-[450px] w-full bg-slate-950/50 rounded-lg border border-slate-800 p-4 relative overflow-hidden group"
-            >
-                {/* Header Overlay */}
-                <div className="absolute top-4 left-4 z-10 pointer-events-none">
-                    <div className="flex items-center gap-2">
-                        <h2 className="text-2xl font-bold text-slate-100 tracking-tighter">NAT/USD</h2>
-                        <span className="px-2 py-0.5 rounded bg-green-500/20 text-green-500 text-xs font-mono border border-green-500/30">
+            <div className="chart-container">
+                {/* Terminal-style Header Bar */}
+                <div className="chart-header-bar">
+                    <div className="chart-symbol">
+                        <h2 className="chart-symbol-name">CAREER.NAT</h2>
+                        <span className="chart-symbol-badge bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
                             BULLISH
                         </span>
+                        <span className="chart-symbol-badge bg-slate-800 text-slate-400 border-slate-700">
+                            EXPERIENCE
+                        </span>
                     </div>
-                    {data.length > 0 && (
-                        <div className="flex items-center gap-4 text-xs font-mono text-slate-500 mt-1">
-                            <span>O: {data[data.length - 1].open}</span>
-                            <span>H: {data[data.length - 1].high}</span>
-                            <span>L: {data[data.length - 1].low}</span>
-                            <span>C: {data[data.length - 1].close}</span>
+                    <div className="flex items-center gap-4">
+                        {/* Time Range Controls */}
+                        <div className="time-range-controls">
+                            <button className="time-range-btn">1Y</button>
+                            <button className="time-range-btn">3Y</button>
+                            <button className="time-range-btn">5Y</button>
+                            <button className="time-range-btn active">ALL</button>
                         </div>
-                    )}
+                        {/* Indicator Toggles */}
+                        <div className="indicator-toggles hidden md:flex">
+                            <span className="indicator-tag on">MA7 ✓</span>
+                            <span className="indicator-tag on">VOL ✓</span>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Canvas */}
-                <canvas
-                    ref={canvasRef}
-                    className="w-full h-full cursor-crosshair"
-                    onMouseMove={handleMouseMove}
-                    onMouseLeave={handleMouseLeave}
-                    onClick={handleClick}
-                />
-
-                {/* Tooltip Overlay */}
-                <AnimatePresence>
-                    {hoverInfo && (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            className="fixed z-50 bg-slate-900/90 border border-slate-700 p-3 rounded shadow-xl backdrop-blur-sm pointer-events-none"
-                            style={{
-                                left: hoverInfo.x + 15,
-                                top: hoverInfo.y + 15
-                            }}
-                        >
-                            <p className="text-slate-400 text-xs mb-1 font-mono">{hoverInfo.data.date}</p>
-                            <div className="flex flex-col gap-1">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs text-slate-500 w-8">Prev</span>
-                                    <span className="font-mono text-slate-300">{hoverInfo.data.open}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs text-slate-500 w-8">Last</span>
-                                    <span className={cn("font-mono font-bold", hoverInfo.data.close >= hoverInfo.data.open ? "text-green-500" : "text-red-500")}>
-                                        {hoverInfo.data.close}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-1 pt-1 border-t border-slate-800">
-                                    <span>H: {hoverInfo.data.high}</span>
-                                    <span>L: {hoverInfo.data.low}</span>
-                                </div>
+                {/* Chart Area */}
+                <div
+                    ref={containerRef}
+                    className="h-[420px] w-full p-4 relative overflow-hidden group"
+                >
+                    {/* OHLC Overlay */}
+                    <div className="absolute top-4 left-4 z-10 pointer-events-none">
+                        {data.length > 0 && (
+                            <div className="flex items-center gap-4 text-xs font-mono bg-slate-900/80 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-slate-700/50">
+                                <span className="text-slate-500">O: <span className="text-slate-300">{data[data.length - 1].open}</span></span>
+                                <span className="text-slate-500">H: <span className="text-emerald-400">{data[data.length - 1].high}</span></span>
+                                <span className="text-slate-500">L: <span className="text-red-400">{data[data.length - 1].low}</span></span>
+                                <span className="text-slate-500">C: <span className={data[data.length - 1].close >= data[data.length - 1].open ? 'text-emerald-400' : 'text-red-400'}>{data[data.length - 1].close}</span></span>
                             </div>
-                            {hoverInfo.data.event && (
-                                <div className="mt-2 pt-2 border-t border-slate-800">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
-                                        <p className="text-yellow-400 font-bold text-xs uppercase tracking-wider">Major Event</p>
+                        )}
+                    </div>
+
+                    {/* Canvas */}
+                    <canvas
+                        ref={canvasRef}
+                        className="w-full h-full cursor-crosshair"
+                        onMouseMove={handleMouseMove}
+                        onMouseLeave={handleMouseLeave}
+                        onClick={handleClick}
+                    />
+
+                    {/* Tooltip Overlay */}
+                    <AnimatePresence>
+                        {hoverInfo && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                className="fixed z-50 bg-slate-900/90 border border-slate-700 p-3 rounded shadow-xl backdrop-blur-sm pointer-events-none"
+                                style={{
+                                    left: hoverInfo.x + 15,
+                                    top: hoverInfo.y + 15
+                                }}
+                            >
+                                <p className="text-slate-400 text-xs mb-1 font-mono">{hoverInfo.data.date}</p>
+                                <div className="flex flex-col gap-1">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-slate-500 w-8">Prev</span>
+                                        <span className="font-mono text-slate-300">{hoverInfo.data.open}</span>
                                     </div>
-                                    <p className="text-white text-sm font-bold">
-                                        {hoverInfo.data.event.title}
-                                    </p>
-                                    <p className="text-slate-400 text-xs">
-                                        {hoverInfo.data.event.company}
-                                    </p>
-                                    <p className="text-[10px] text-green-400 mt-1 uppercase tracking-widest">
-                                        Click to View
-                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-slate-500 w-8">Last</span>
+                                        <span className={cn("font-mono font-bold", hoverInfo.data.close >= hoverInfo.data.open ? "text-green-500" : "text-red-500")}>
+                                            {hoverInfo.data.close}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-1 pt-1 border-t border-slate-800">
+                                        <span>H: {hoverInfo.data.high}</span>
+                                        <span>L: {hoverInfo.data.low}</span>
+                                    </div>
                                 </div>
-                            )}
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                                {hoverInfo.data.event && (
+                                    <div className="mt-2 pt-2 border-t border-slate-800">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
+                                            <p className="text-yellow-400 font-bold text-xs uppercase tracking-wider">Major Event</p>
+                                        </div>
+                                        <p className="text-white text-sm font-bold">
+                                            {hoverInfo.data.event.title}
+                                        </p>
+                                        <p className="text-slate-400 text-xs">
+                                            {hoverInfo.data.event.company}
+                                        </p>
+                                        <p className="text-[10px] text-green-400 mt-1 uppercase tracking-widest">
+                                            Click to View
+                                        </p>
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
 
-            {/* Recent History List (Moved Up) */}
-            <div className="mt-8 border-t border-slate-800 pt-8">
-                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                    <FaHistory className="text-slate-500" />
-                    Trade History
-                </h3>
-                <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+            {/* Recent History List */}
+            <div>
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <FaHistory className="text-emerald-500" />
+                        Trade History
+                    </h3>
+                    <span className="text-[10px] font-mono text-slate-500 bg-slate-800/50 px-2 py-1 rounded">
+                        {experienceData.length} POSITIONS
+                    </span>
+                </div>
+                <div className="trade-history-table max-h-[280px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
                     <table className="w-full text-left text-sm text-slate-400">
                         <thead className="bg-slate-950 text-slate-200 font-mono uppercase text-xs sticky top-0 z-10">
                             <tr>
@@ -404,17 +434,18 @@ export function ExperienceChart() {
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.98 }}
                             transition={{ duration: 0.2 }}
-                            className="w-full bg-slate-900/50 border border-slate-700 rounded-xl p-6 md:p-8 relative overflow-hidden"
+                            className="job-details-card p-6 md:p-8"
                         >
                             {/* Background decoration */}
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-slate-800/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
                             <div className="flex flex-col md:flex-row gap-6 md:items-start relative z-10">
                                 <div className="flex-shrink-0">
-                                    <div className="w-16 h-16 rounded-lg bg-white p-1 flex items-center justify-center overflow-hidden border border-slate-700 shadow-lg">
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={selectedJob.companyLogo} alt={selectedJob.company} className="w-full h-full object-contain" />
-                                    </div>
+                                    <CompanyLogoSimple
+                                        src={selectedJob.companyLogo}
+                                        companyName={selectedJob.company}
+                                        size="lg"
+                                    />
                                 </div>
 
                                 <div className="flex-grow space-y-4">

@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-[#09090b] text-[#e4e4e7]; 
+    @apply bg-[#09090b] text-[#e4e4e7];
   }
 }
 
@@ -15,16 +15,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #18181b; 
+  background: #18181b;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a; 
+  background: #27272a;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46; 
+  background: #3f3f46;
 }
 
 /* Custom Utilities */
@@ -38,19 +38,37 @@
     animation: fadeInUp 0.5s ease-out forwards;
     opacity: 0;
   }
-  
-  .delay-100 { animation-delay: 100ms; }
-  .delay-200 { animation-delay: 200ms; }
-  .delay-300 { animation-delay: 300ms; }
-  .delay-400 { animation-delay: 400ms; }
-  .delay-500 { animation-delay: 500ms; }
-  .delay-600 { animation-delay: 600ms; }
+
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .delay-400 {
+    animation-delay: 400ms;
+  }
+
+  .delay-500 {
+    animation-delay: 500ms;
+  }
+
+  .delay-600 {
+    animation-delay: 600ms;
+  }
 
   @keyframes fadeInUp {
     from {
       opacity: 0;
       transform: translateY(20px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -61,10 +79,13 @@
 /* Stock Panel Glassmorphism */
 @layer components {
   .stock-panel {
-    @apply bg-stock-panel/70 backdrop-blur-md border border-stock-border rounded-lg;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 
-                0 2px 4px -1px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    @apply relative border border-stock-border rounded-lg;
+    background: rgba(12, 12, 18, 0.92);
+    backdrop-filter: blur(32px) saturate(180%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5),
+      0 2px 4px -1px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 
   .stock-panel-hover {
@@ -74,8 +95,8 @@
   .stock-panel-hover:hover {
     @apply border-stock-border-light;
     box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.6),
-                0 4px 6px -2px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      0 4px 6px -2px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 
   .stock-card {
@@ -85,8 +106,311 @@
   .stock-card::before {
     content: '';
     @apply absolute top-0 left-0 right-0 h-px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
   }
+
+  /* Enhanced Glassmorphism System - High Readability */
+  .glass-panel {
+    @apply relative;
+    background: rgba(15, 15, 20, 0.88);
+    backdrop-filter: blur(32px) saturate(180%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  /* Elevated glass - for cards with more prominence */
+  .glass-card {
+    @apply glass-panel rounded-xl;
+    background: rgba(12, 12, 18, 0.92);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow:
+      0 12px 40px rgba(0, 0, 0, 0.6),
+      0 4px 12px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-card:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+    box-shadow:
+      0 16px 48px rgba(0, 0, 0, 0.65),
+      0 6px 16px rgba(0, 0, 0, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  /* Subtle glass - for nested elements */
+  .glass-subtle {
+    background: rgba(24, 24, 32, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  /* Glass with accent glow */
+  .glass-accent {
+    @apply glass-panel;
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    box-shadow:
+      0 0 24px rgba(59, 130, 246, 0.2),
+      0 8px 32px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(59, 130, 246, 0.15);
+  }
+
+  /* Glass with success glow */
+  .glass-success {
+    @apply glass-panel;
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    box-shadow:
+      0 0 24px rgba(34, 197, 94, 0.2),
+      0 8px 32px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(34, 197, 94, 0.15);
+  }
+
+  /* Experience Chart Premium Container */
+  .chart-container {
+    @apply relative rounded-xl overflow-hidden;
+    background: rgba(12, 15, 25, 0.94);
+    backdrop-filter: blur(32px) saturate(180%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    box-shadow:
+      0 0 40px rgba(34, 197, 94, 0.1),
+      0 8px 32px rgba(0, 0, 0, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  .chart-container::before {
+    content: '';
+    @apply absolute top-0 left-0 right-0 h-0.5;
+    background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.6), transparent);
+  }
+
+  /* Chart Header Bar */
+  .chart-header-bar {
+    @apply flex items-center justify-between px-4 py-2.5 border-b;
+    background: rgba(8, 10, 18, 0.96);
+    border-color: rgba(51, 65, 85, 0.5);
+  }
+
+  .chart-symbol {
+    @apply flex items-center gap-2;
+  }
+
+  .chart-symbol-name {
+    @apply text-xl font-bold text-white tracking-tight;
+  }
+
+  .chart-symbol-badge {
+    @apply text-[10px] font-mono px-2 py-0.5 rounded border;
+  }
+
+  /* Time Range Controls */
+  .time-range-controls {
+    @apply flex items-center gap-1 bg-slate-900/50 rounded-lg p-1;
+  }
+
+  .time-range-btn {
+    @apply px-2.5 py-1 text-[10px] font-mono text-slate-500 rounded transition-all;
+  }
+
+  .time-range-btn:hover {
+    @apply text-slate-300;
+  }
+
+  .time-range-btn.active {
+    @apply bg-emerald-500/20 text-emerald-400 border border-emerald-500/30;
+  }
+
+  /* Indicator Toggles */
+  .indicator-toggles {
+    @apply flex items-center gap-2;
+  }
+
+  .indicator-tag {
+    @apply text-[10px] font-mono px-2 py-1 rounded border border-transparent transition-all;
+  }
+
+  .indicator-tag.on {
+    @apply bg-slate-800 text-slate-300 border-slate-700;
+  }
+
+  .indicator-tag.off {
+    @apply bg-transparent text-slate-600;
+  }
+
+  /* Trade History Table */
+  .trade-history-table {
+    @apply rounded-xl overflow-hidden;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(51, 65, 85, 0.5);
+  }
+
+  .trade-history-table thead {
+    background: rgba(15, 23, 42, 0.95);
+  }
+
+  .trade-history-table tbody tr:hover {
+    background: rgba(51, 65, 85, 0.3);
+  }
+
+  /* Job Details Card */
+  .job-details-card {
+    @apply relative rounded-xl overflow-hidden;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(51, 65, 85, 0.5);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  .job-details-card::before {
+    content: '';
+    @apply absolute top-0 left-0 right-0 h-px;
+    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.4), transparent);
+  }
+}
+
+/* Market Watchlist Styles */
+.watchlist-row {
+  @apply flex items-center gap-4 px-4 py-3 border-b border-stock-border/30 transition-all duration-200;
+  background: transparent;
+}
+
+.watchlist-row:hover {
+  background: rgba(39, 39, 42, 0.5);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.watchlist-row.is-active {
+  background: rgba(34, 197, 94, 0.1);
+  border-left: 2px solid #22c55e;
+}
+
+.price-cell {
+  @apply font-mono;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.15s ease;
+}
+
+.price-flash-up {
+  animation: flashGreen 0.5s ease-out;
+}
+
+.price-flash-down {
+  animation: flashRed 0.5s ease-out;
+}
+
+@keyframes flashGreen {
+  0% {
+    background-color: rgba(34, 197, 94, 0.4);
+  }
+
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes flashRed {
+  0% {
+    background-color: rgba(239, 68, 68, 0.4);
+  }
+
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Stock Quote Page Styles */
+.quote-header {
+  @apply glass-card p-6 relative overflow-hidden;
+}
+
+.quote-header::before {
+  content: '';
+  @apply absolute top-0 left-0 right-0 h-1;
+  background: linear-gradient(90deg, #22c55e, #3b82f6, #22c55e);
+  background-size: 200% 100%;
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.fundamentals-grid {
+  @apply grid grid-cols-2 md:grid-cols-4 gap-3;
+}
+
+.fundamental-item {
+  @apply glass-subtle rounded-lg p-3 text-center;
+}
+
+.fundamental-label {
+  @apply text-stock-muted uppercase tracking-wider mb-1;
+  font-size: 10px;
+}
+
+.fundamental-value {
+  @apply text-lg font-mono font-bold text-stock-text;
+}
+
+.fundamental-value.positive {
+  @apply text-stock-green;
+}
+
+/* Analysis Report Styles */
+.analysis-section {
+  @apply glass-card p-5;
+}
+
+.analysis-header {
+  @apply flex items-center gap-2 mb-4 pb-3 border-b border-stock-border/30;
+}
+
+.analysis-title {
+  @apply text-lg font-bold text-stock-text;
+}
+
+.analysis-content {
+  @apply text-stock-muted leading-relaxed;
+}
+
+/* Order Book Style (for features vs challenges) */
+.orderbook-container {
+  @apply grid grid-cols-2 gap-4;
+}
+
+.orderbook-side {
+  @apply glass-subtle rounded-lg p-4;
+}
+
+.orderbook-side.buy {
+  border-left: 2px solid #22c55e;
+}
+
+.orderbook-side.sell {
+  border-left: 2px solid #ef4444;
+}
+
+.orderbook-item {
+  @apply flex items-start gap-3 py-2 border-b border-stock-border/20 last:border-0;
 }
 
 /* LED-style Numbers */
@@ -119,8 +443,15 @@
 }
 
 @keyframes priceFlash {
-  0% { opacity: 1; transform: scale(1.1); }
-  100% { opacity: 1; transform: scale(1); }
+  0% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* Candlestick styles */
@@ -136,20 +467,18 @@
 
 /* Scanline overlay effect */
 .scanline-overlay {
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.03) 2px,
-    rgba(0, 0, 0, 0.03) 4px
-  );
+  background: repeating-linear-gradient(0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.03) 2px,
+      rgba(0, 0, 0, 0.03) 4px);
   pointer-events: none;
 }
 
 /* Grid background pattern */
 .grid-bg {
   background-size: 50px 50px;
-  background-image: 
+  background-image:
     linear-gradient(to right, rgba(39, 39, 42, 0.3) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(39, 39, 42, 0.3) 1px, transparent 1px);
 }
@@ -190,8 +519,17 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.2); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
 }
 
 /* Trading badge styles */
@@ -214,7 +552,7 @@
 /* Chart area styling */
 .chart-area {
   @apply relative bg-stock-bg/50 rounded border border-stock-border;
-  background-image: 
+  background-image:
     linear-gradient(to right, rgba(39, 39, 42, 0.2) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(39, 39, 42, 0.2) 1px, transparent 1px);
   background-size: 40px 40px;

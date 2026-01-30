@@ -43,14 +43,14 @@ export function TickerTape() {
     const duplicatedTickers = [...tickers, ...tickers];
 
     return (
-        <div className="w-full bg-stock-panel/80 backdrop-blur-sm border-b border-stock-border overflow-hidden py-2">
+        <div className="w-full bg-stock-panel/90 backdrop-blur-sm border-b border-stock-border/50 overflow-hidden py-0.5">
             <div className="flex whitespace-nowrap">
                 <motion.div
                     className="flex"
                     animate={{ x: "-50%" }}
                     transition={{
                         ease: "linear",
-                        duration: 120,
+                        duration: 80,
                         repeat: Infinity,
                     }}
                 >
@@ -60,33 +60,33 @@ export function TickerTape() {
                         return (
                             <div
                                 key={index}
-                                className="ticker-item border-r border-stock-border/50 last:border-r-0"
+                                className="flex items-center gap-1.5 px-3 py-0.5 border-r border-stock-border/30 last:border-r-0"
                             >
                                 {/* Symbol */}
-                                <span className="ticker-symbol">{ticker.symbol}</span>
+                                <span className="text-[10px] font-mono font-semibold text-stock-text">{ticker.symbol}</span>
 
                                 {/* Price */}
-                                <span className="ticker-price">
+                                <span className="text-[10px] font-mono text-stock-muted tabular-nums">
                                     ${ticker.price.toFixed(2)}
                                 </span>
 
                                 {/* Change */}
-                                <span className={`flex items-center gap-1 ${isPositive ? 'ticker-change-up' : 'ticker-change-down'
+                                <span className={`flex items-center gap-0.5 text-[9px] font-mono font-medium ${isPositive ? 'text-stock-green' : 'text-stock-red'
                                     }`}>
-                                    <span className="text-[10px]">
+                                    <span className="text-[7px]">
                                         {isPositive ? '▲' : '▼'}
                                     </span>
-                                    <span>
-                                        {isPositive ? '+' : ''}{ticker.change.toFixed(2)}%
+                                    <span className="tabular-nums">
+                                        {isPositive ? '+' : ''}{ticker.change.toFixed(1)}%
                                     </span>
                                 </span>
 
                                 {/* Volume indicator (desktop only) */}
-                                <span className={`hidden lg:inline-block text-[10px] px-1.5 py-0.5 rounded ${ticker.volume === 'HIGH'
-                                    ? 'bg-stock-green/20 text-stock-green'
+                                <span className={`hidden lg:inline-block text-[8px] font-mono px-1 py-0 rounded ${ticker.volume === 'HIGH'
+                                    ? 'bg-stock-green/15 text-stock-green'
                                     : ticker.volume === 'MED'
-                                        ? 'bg-stock-gold/20 text-stock-gold'
-                                        : 'bg-stock-muted/20 text-stock-muted'
+                                        ? 'bg-stock-gold/15 text-stock-gold'
+                                        : 'bg-stock-muted/15 text-stock-muted'
                                     }`}>
                                     {ticker.volume}
                                 </span>
