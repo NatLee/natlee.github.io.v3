@@ -61,7 +61,7 @@
 /* Stock Panel Glassmorphism */
 @layer components {
   .stock-panel {
-    @apply bg-stock-panel/90 backdrop-blur-md border border-stock-border rounded-lg;
+    @apply bg-stock-panel/70 backdrop-blur-md border border-stock-border rounded-lg;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 
                 0 2px 4px -1px rgba(0, 0, 0, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.05);
