@@ -261,13 +261,14 @@ export function SimulatedTradingSection() {
     const [pnl, setPnl] = useState<number>(0);
 
     const [showMA, setShowMA] = useState(true);
-    const [showFib, setShowFib] = useState(false);
+    const [showFib, setShowFib] = useState(true);
 
     const [aiState, setAiState] = useState<"idle" | "scanning" | "analyzed">("idle");
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [aiRecommendation, setAiRecommendation] = useState<"LONG" | "SHORT" | null>(null);
     const [orderBook, setOrderBook] = useState<{ asks: any[], bids: any[] }>({ asks: [], bids: [] });
     const [marketStats, setMarketStats] = useState({ high: 785.50, low: 768.20, vol: "125,400", sentiment: 50, regime: "CHOP" });
+    const [candleDisplay, setCandleDisplay] = useState<{ o: string, h: string, l: string, c: string, v: string } | null>(null);
 
     const addLog = (text: string, type: LogEntry['type'] = "info") => {
         const time = new Date().toLocaleTimeString().split(' ')[0];
@@ -496,7 +497,12 @@ export function SimulatedTradingSection() {
         liveCandle.high = Math.max(liveCandle.high, liveCandle.close);
         liveCandle.low = Math.min(liveCandle.low, liveCandle.close);
 
-        let tickVol = Math.abs(percentChange * 10000) * 30 + Math.random() * 10;
+        // Volume correlates with volatility + random bursts (Order Book Matching Simulation)
+        let baseVol = Math.abs(percentChange * 10000) * 50;
+        if (baseVol < 5) baseVol = 5; // Minimum churn
+        if (Math.random() > 0.85) baseVol *= 3; // Occasional large block trades
+
+        let tickVol = baseVol + Math.random() * 20;
         liveCandle.volume += tickVol;
 
         candleProgressRef.current += 1;
@@ -649,6 +655,8 @@ export function SimulatedTradingSection() {
             canvas.width = rect.width * dpr; canvas.height = rect.height * dpr; ctx.scale(dpr, dpr);
         }
         const width = rect.width; const height = rect.height;
+        const paddingRight = 65;
+        const chartWidth = width - paddingRight;
 
         ctx.fillStyle = "#09090b"; ctx.fillRect(0, 0, width, height);
 
@@ -669,13 +677,26 @@ export function SimulatedTradingSection() {
         const priceRange = maxPrice - minPrice || 1;
 
         const chartHeight = height - 40;
-        const candleWidth = (width / viewCount) * 0.6;
-        const candleSpacing = width / viewCount;
-        const getX = (i: number) => i * candleSpacing + (candleSpacing / 2);
+
+        const candleWidth = (chartWidth / viewCount) * 0.6;
+        const candleSpacing = chartWidth / viewCount;
+        const getX = (i: number) => i * candleSpacing + (candleSpacing / 2); // 0-based for drawing
         const getY = (p: number) => chartHeight - ((p - minPrice) / priceRange) * chartHeight + 20;
 
         ctx.strokeStyle = "#18181b"; ctx.lineWidth = 1; ctx.beginPath();
-        for (let i = 0; i < 6; i++) { const y = (chartHeight / 6) * i + 20; ctx.moveTo(0, y); ctx.lineTo(width, y); } ctx.stroke();
+        for (let i = 0; i < 6; i++) {
+            const y = (chartHeight / 6) * i + 20;
+            ctx.moveTo(0, y);
+            ctx.lineTo(chartWidth, y);
+
+            // Y-Axis Labels
+            const priceLevel = maxPrice - (i * (maxPrice - minPrice) / 6);
+            ctx.fillStyle = "#52525b"; // zinc-600
+            ctx.font = "10px monospace";
+            ctx.textAlign = "left";
+            ctx.fillText(priceLevel.toFixed(2), chartWidth + 6, y + 3);
+        }
+        ctx.stroke();
 
         if (showMA) {
             ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 2; ctx.beginPath(); let started = false;
@@ -686,17 +707,31 @@ export function SimulatedTradingSection() {
             [0, 0.382, 0.5, 0.618, 1].forEach(level => {
                 const y = getY(visibleHigh - diff * level);
                 ctx.beginPath(); ctx.strokeStyle = level === 0.618 ? "rgba(234, 179, 8, 0.4)" : "rgba(255, 255, 255, 0.08)";
-                ctx.lineWidth = level === 0.618 ? 1.5 : 1; ctx.setLineDash([4, 2]); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke(); ctx.setLineDash([]);
+                ctx.lineWidth = level === 0.618 ? 1.5 : 1; ctx.setLineDash([4, 2]); ctx.moveTo(0, y); ctx.lineTo(chartWidth, y); ctx.stroke(); ctx.setLineDash([]);
             });
         }
 
         visibleCandles.forEach((candle, i) => {
             const x = getX(i); const isGreen = candle.close >= candle.open; const color = isGreen ? "#10b981" : "#f43f5e";
-            ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, getY(candle.high)); ctx.lineTo(x, getY(candle.low)); ctx.stroke();
+
+            // Draw Wicks (Thicker)
+            ctx.strokeStyle = color; ctx.lineWidth = 2.0; ctx.beginPath(); ctx.moveTo(x, getY(candle.high)); ctx.lineTo(x, getY(candle.low)); ctx.stroke();
+
+            // Draw Body
             const bodyH = Math.max(Math.abs(getY(candle.open) - getY(candle.close)), 1);
             ctx.fillStyle = color; ctx.fillRect(x - candleWidth / 2, Math.min(getY(candle.open), getY(candle.close)), candleWidth, bodyH);
-            const maxVol = 5000; let volH = (candle.volume / maxVol) * 60; if (volH > 60) volH = 60;
-            ctx.fillStyle = isGreen ? "rgba(16, 185, 129, 0.15)" : "rgba(244, 63, 94, 0.15)"; ctx.fillRect(x - candleWidth / 2, height - volH, candleWidth, volH);
+
+            // Draw Volume
+            const maxVol = 40000; // Increased max volume to prevent capping
+            let volH = (candle.volume / maxVol) * 80; // Allow taller bars
+            if (volH > 80) volH = 80;
+
+            // More opaque volume bars with border
+            ctx.fillStyle = isGreen ? "rgba(16, 185, 129, 0.4)" : "rgba(244, 63, 94, 0.4)";
+            ctx.fillRect(x - candleWidth / 2, height - volH, candleWidth, volH);
+            ctx.strokeStyle = isGreen ? "rgba(16, 185, 129, 0.6)" : "rgba(244, 63, 94, 0.6)"; // Slightly darker border
+            ctx.lineWidth = 0.5;
+            ctx.strokeRect(x - candleWidth / 2, height - volH, candleWidth, volH);
         });
 
         signalMarkersRef.current.forEach(marker => {
@@ -721,12 +756,12 @@ export function SimulatedTradingSection() {
         });
 
         if (position) {
-            const y = getY(position.entryPrice); ctx.strokeStyle = "#eab308"; ctx.lineWidth = 1; ctx.setLineDash([6, 4]); ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke(); ctx.setLineDash([]);
-            ctx.fillStyle = "#eab308"; ctx.font = "10px monospace"; ctx.fillText(`${t.entry}`, width - 60, y - 5);
+            const y = getY(position.entryPrice); ctx.strokeStyle = "#eab308"; ctx.lineWidth = 1; ctx.setLineDash([6, 4]); ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(chartWidth, y); ctx.stroke(); ctx.setLineDash([]);
+            ctx.fillStyle = "#eab308"; ctx.font = "10px monospace"; ctx.fillText(`${t.entry}`, chartWidth - 60, y - 5);
         }
-        const curY = getY(currentPrice); ctx.strokeStyle = "rgba(255, 255, 255, 0.5)"; ctx.setLineDash([2, 2]); ctx.beginPath(); ctx.moveTo(0, curY); ctx.lineTo(width, curY); ctx.stroke(); ctx.setLineDash([]);
-        ctx.fillStyle = currentPrice >= visibleCandles[visibleCandles.length - 1].open ? "#10b981" : "#f43f5e"; ctx.fillRect(width - 65, curY - 10, 65, 20);
-        ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.fillText(currentPrice.toFixed(2), width - 32, curY + 4);
+        const curY = getY(currentPrice); ctx.strokeStyle = "rgba(255, 255, 255, 0.5)"; ctx.setLineDash([2, 2]); ctx.beginPath(); ctx.moveTo(0, curY); ctx.lineTo(chartWidth, curY); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = currentPrice >= visibleCandles[visibleCandles.length - 1].open ? "#10b981" : "#f43f5e"; ctx.fillRect(chartWidth, curY - 10, paddingRight, 20);
+        ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.fillText(currentPrice.toFixed(2), chartWidth + (paddingRight / 2), curY + 4);
 
         if (Math.random() > 0.8) {
             setMarketStats(prev => ({
@@ -747,10 +782,17 @@ export function SimulatedTradingSection() {
             if (now - lastPriceUpdateRef.current > 200 && currentCandleRef.current) {
                 const p = currentCandleRef.current.close;
                 setDisplayPrice(p.toFixed(2));
+                setCandleDisplay({
+                    o: currentCandleRef.current.open.toFixed(2),
+                    h: currentCandleRef.current.high.toFixed(2),
+                    l: currentCandleRef.current.low.toFixed(2),
+                    c: currentCandleRef.current.close.toFixed(2),
+                    v: currentCandleRef.current.volume.toFixed(0)
+                });
                 if (position) { const diff = p - position.entryPrice; const raw = position.type === "long" ? diff : -diff; setPnl((raw / position.entryPrice) * position.size * position.leverage); }
                 lastPriceUpdateRef.current = now;
             }
-            if (now - lastOrderBookUpdateRef.current > 1200 && currentCandleRef.current) {
+            if (now - lastOrderBookUpdateRef.current > 400 && currentCandleRef.current) {
                 const p = currentCandleRef.current.close;
                 setOrderBook(generateOrderBook(p, 2 + Math.random() * 2));
                 lastOrderBookUpdateRef.current = now;
@@ -791,7 +833,7 @@ export function SimulatedTradingSection() {
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
 
-                {/* Left Area */}
+                {/* Left Area - Chart Only */}
                 <div className="lg:col-span-3 flex flex-col gap-3 h-full">
 
                     {/* Chart */}
@@ -802,36 +844,19 @@ export function SimulatedTradingSection() {
                             <button onClick={() => setShowFib(!showFib)} className={`p-1.5 rounded text-xs font-bold border flex items-center gap-1 transition-all ${showFib ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-300' : 'bg-zinc-800 border-zinc-700 text-zinc-500'}`}>{showFib ? <Layers size={12} /> : <Layers size={12} />} {t.fib}</button>
                         </div>
                         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full cursor-crosshair" />
-                        <div className="absolute top-3 left-3 flex gap-2 items-center opacity-80">
+                        <div className="absolute top-3 left-3 flex gap-2 items-center opacity-80 z-20">
                             <div className="bg-yellow-500/20 text-yellow-500 border border-yellow-500/50 px-2 py-0.5 rounded text-xs font-bold font-mono">
                                 {t.pair}
                             </div>
-                        </div>
-                    </div>
-
-                    {/* Terminal */}
-                    <div className="flex-1 min-h-[12rem] bg-black border border-zinc-800 rounded-sm p-3 font-mono text-xs overflow-hidden flex flex-col shadow-inner shadow-black/50">
-
-                        <div className="flex items-center gap-2 text-zinc-500 mb-2 border-b border-zinc-900 pb-1">
-                            <Terminal size={12} />
-                            <span className="uppercase tracking-widest text-[10px]">{t.terminalTitle}</span>
-                            {aiState === "scanning" && <span className="animate-pulse text-indigo-500">● {t.processing}</span>}
-                        </div>
-                        <div className="flex-1 overflow-hidden flex flex-col-reverse gap-1">
-                            {logs.map((log, i) => (
-                                <div key={i} className={`flex gap-2`}>
-                                    <span className="text-zinc-700">[{log.time}]</span>
-                                    <span className={
-                                        log.type === "alert" ? "text-rose-500 font-bold" :
-                                            log.type === "success" ? "text-emerald-400 font-bold" :
-                                                log.type === "subtle" ? "text-zinc-500 italic block pl-6 border-l-2 border-zinc-800" :
-                                                    log.type === "warning" ? "text-yellow-400" : "text-zinc-400"
-                                    }>
-                                        {(i === 0 && log.type !== "subtle") && <span className="mr-2">➜</span>}
-                                        {log.text}
-                                    </span>
+                            {candleDisplay && (
+                                <div className="flex gap-4 text-xs font-mono text-zinc-300 font-bold bg-black/40 px-2 py-0.5 rounded backdrop-blur-sm border border-white/10">
+                                    <span>O: <span className="text-white">{candleDisplay.o}</span></span>
+                                    <span>H: <span className="text-white">{candleDisplay.h}</span></span>
+                                    <span>L: <span className="text-white">{candleDisplay.l}</span></span>
+                                    <span>C: <span className={Number(candleDisplay.c) >= Number(candleDisplay.o) ? "text-emerald-400" : "text-rose-400"}>{candleDisplay.c}</span></span>
+                                    <span className="text-zinc-400">V: <span className="text-zinc-200">{candleDisplay.v}</span></span>
                                 </div>
-                            ))}
+                            )}
                         </div>
                     </div>
                 </div>
@@ -893,6 +918,33 @@ export function SimulatedTradingSection() {
                             {position && (<div className="mt-2 pt-4 border-t border-zinc-800 animate-in slide-in-from-bottom-2"><div className="flex justify-between items-center mb-2 text-xs"><span className="text-zinc-500">{t.entry}</span><span className="text-white font-mono">{position.entryPrice.toFixed(2)}</span></div><button onClick={closePosition} className="w-full py-3 bg-zinc-100 hover:bg-white text-black font-bold text-xs rounded flex items-center justify-center gap-2"><Lock size={14} /> {t.close}</button></div>)}
                         </div>
                     </div>
+                </div>
+
+            </div>
+
+            {/* Terminal (Now Full Width Below) */}
+            <div className="w-full mt-4 min-h-[12rem] bg-black border border-zinc-800 rounded-sm p-3 font-mono text-xs overflow-hidden flex flex-col shadow-inner shadow-black/50">
+
+                <div className="flex items-center gap-2 text-zinc-500 mb-2 border-b border-zinc-900 pb-1">
+                    <Terminal size={12} />
+                    <span className="uppercase tracking-widest text-[10px]">{t.terminalTitle}</span>
+                    {aiState === "scanning" && <span className="animate-pulse text-indigo-500">● {t.processing}</span>}
+                </div>
+                <div className="flex-1 overflow-hidden flex flex-col-reverse gap-1">
+                    {logs.map((log, i) => (
+                        <div key={i} className={`flex gap-2`}>
+                            <span className="text-zinc-700">[{log.time}]</span>
+                            <span className={
+                                log.type === "alert" ? "text-rose-500 font-bold" :
+                                    log.type === "success" ? "text-emerald-400 font-bold" :
+                                        log.type === "subtle" ? "text-zinc-500 italic block pl-6 border-l-2 border-zinc-800" :
+                                            log.type === "warning" ? "text-yellow-400" : "text-zinc-400"
+                            }>
+                                {(i === 0 && log.type !== "subtle") && <span className="mr-2">➜</span>}
+                                {log.text}
+                            </span>
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>

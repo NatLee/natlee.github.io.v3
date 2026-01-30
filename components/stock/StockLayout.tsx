@@ -1,7 +1,6 @@
 "use client";
 
 import { Header } from "./Header";
-import { TickerTape } from "./TickerTape";
 import StockBackground from "./StockBackground";
 
 interface StockLayoutProps {
@@ -9,23 +8,21 @@ interface StockLayoutProps {
     showTicker?: boolean;
 }
 
-export function StockLayout({ 
-    children, 
-    showTicker = true 
+export function StockLayout({
+    children,
+    showTicker = true
 }: StockLayoutProps) {
     return (
         <div className="min-h-screen bg-stock-bg text-stock-text font-sans relative">
             {/* Animated Background */}
             <StockBackground />
-            
+
             {/* Header with Navigation */}
-            <Header />
+            <Header showTicker={showTicker} />
 
             {/* Main Content - Full Width */}
-            <main className="pt-20 relative z-10">
-                {/* Ticker Tape */}
-                {showTicker && <TickerTape />}
-                
+            <main className="pt-32 relative z-10">
+
                 {/* Content Area */}
                 <div className="p-4 md:p-6 lg:p-8 max-w-6xl mx-auto space-y-6">
                     {children}

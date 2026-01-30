@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { personalInfo } from "@/data/personal";
-import { 
-    Menu, 
+import {
+    Menu,
     X,
     Home,
     User,
@@ -20,6 +20,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { TickerTape } from "./TickerTape";
 
 const navItems = [
     { icon: Home, label: "Home", href: "/" },
@@ -28,7 +29,7 @@ const navItems = [
     { icon: FolderKanban, label: "Projects", href: "/projects" },
 ];
 
-export function Header() {
+export function Header({ showTicker = false }: { showTicker?: boolean }) {
     const pathname = usePathname();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
@@ -51,15 +52,15 @@ export function Header() {
     return (
         <header className={cn(
             "fixed top-0 w-full z-50 transition-all duration-500",
-            isScrolled 
-                ? "bg-stock-bg/90 backdrop-blur-xl border-b border-stock-border/50 shadow-lg shadow-black/10" 
+            isScrolled
+                ? "bg-stock-bg/90 backdrop-blur-xl border-b border-stock-border/50 shadow-lg shadow-black/10"
                 : "bg-transparent"
         )}>
             {/* Animated top accent line */}
             <div className="absolute top-0 left-0 right-0 h-[2px] overflow-hidden">
-                <motion.div 
+                <motion.div
                     className="h-full bg-gradient-to-r from-transparent via-stock-green to-transparent"
-                    animate={{ 
+                    animate={{
                         x: ["-100%", "100%"],
                     }}
                     transition={{
@@ -78,7 +79,7 @@ export function Header() {
                     {/* Logo / Brand */}
                     <Link href="/" className="flex items-center gap-3 group">
                         <div className="relative">
-                            <motion.div 
+                            <motion.div
                                 className={cn(
                                     "w-11 h-11 rounded-xl overflow-hidden border-2 transition-all duration-300",
                                     isScrolled ? "border-stock-green/40" : "border-stock-green/60"
@@ -94,9 +95,9 @@ export function Header() {
                                     className="object-cover w-full h-full"
                                 />
                             </motion.div>
-                            <motion.div 
+                            <motion.div
                                 className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-stock-green rounded-full border-2 border-stock-bg"
-                                animate={{ 
+                                animate={{
                                     scale: [1, 1.2, 1],
                                     opacity: [1, 0.8, 1]
                                 }}
@@ -107,7 +108,7 @@ export function Header() {
                                 }}
                             />
                         </div>
-                        
+
                         <div className="hidden sm:block">
                             <div className="flex items-center gap-2">
                                 <span className="text-stock-text font-bold text-lg group-hover:text-stock-green transition-colors">
@@ -127,8 +128,8 @@ export function Header() {
                     <nav className="hidden md:flex items-center">
                         <div className={cn(
                             "relative flex items-center gap-1 p-1.5 rounded-2xl transition-all duration-300",
-                            isScrolled 
-                                ? "bg-stock-panel/80 border border-stock-border/50" 
+                            isScrolled
+                                ? "bg-stock-panel/80 border border-stock-border/50"
                                 : "bg-stock-panel/40 backdrop-blur-sm border border-stock-border/30"
                         )}>
                             {/* Animated background for active item */}
@@ -157,7 +158,7 @@ export function Header() {
                             {navItems.map((item) => {
                                 const isActive = pathname === item.href;
                                 const isHovered = activeHover === item.href;
-                                
+
                                 return (
                                     <Link
                                         key={item.href}
@@ -183,7 +184,7 @@ export function Header() {
                                                 }}
                                             />
                                         )}
-                                        
+
                                         {/* Hover effect */}
                                         {!isActive && isHovered && (
                                             <motion.div
@@ -193,7 +194,7 @@ export function Header() {
                                                 exit={{ opacity: 0 }}
                                             />
                                         )}
-                                        
+
                                         <span className="relative z-10 flex items-center gap-2">
                                             <item.icon size={16} />
                                             <span>{item.label}</span>
@@ -209,8 +210,8 @@ export function Header() {
                         {/* Status Badge */}
                         <div className={cn(
                             "hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-300",
-                            isScrolled 
-                                ? "bg-stock-green/10 border-stock-green/30" 
+                            isScrolled
+                                ? "bg-stock-green/10 border-stock-green/30"
                                 : "bg-stock-green/5 border-stock-green/20 backdrop-blur-sm"
                         )}>
                             <Sparkles size={14} className="text-stock-green" />
@@ -222,28 +223,28 @@ export function Header() {
                         {/* Social Links - Enhanced */}
                         <div className={cn(
                             "hidden md:flex items-center gap-1 p-1 rounded-xl transition-all duration-300",
-                            isScrolled 
-                                ? "bg-stock-panel/50" 
+                            isScrolled
+                                ? "bg-stock-panel/50"
                                 : "bg-stock-panel/30 backdrop-blur-sm"
                         )}>
-                            <SocialButton 
-                                href="https://github.com/natlee" 
+                            <SocialButton
+                                href="https://github.com/natlee"
                                 icon={<Github size={18} />}
                                 label="GitHub"
                             />
-                            <SocialButton 
-                                href="https://www.linkedin.com/in/nat-lee-726525ba/" 
+                            <SocialButton
+                                href="https://www.linkedin.com/in/nat-lee-726525ba/"
                                 icon={<Linkedin size={18} />}
                                 label="LinkedIn"
                             />
                         </div>
 
                         {/* Mobile Menu Button */}
-                        <motion.button 
+                        <motion.button
                             className={cn(
                                 "md:hidden p-2.5 rounded-xl transition-colors",
-                                isMenuOpen 
-                                    ? "bg-stock-green text-stock-bg" 
+                                isMenuOpen
+                                    ? "bg-stock-green text-stock-bg"
                                     : "text-stock-muted hover:text-stock-text hover:bg-stock-border/50"
                             )}
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -258,7 +259,7 @@ export function Header() {
             {/* Mobile Menu - Enhanced */}
             <AnimatePresence>
                 {isMenuOpen && (
-                    <motion.div 
+                    <motion.div
                         className="md:hidden absolute top-full left-0 right-0 bg-stock-bg/98 backdrop-blur-xl border-b border-stock-border"
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -275,8 +276,8 @@ export function Header() {
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: index * 0.05 }}
                                     >
-                                        <Link 
-                                            href={item.href} 
+                                        <Link
+                                            href={item.href}
                                             className={cn(
                                                 "flex items-center justify-between py-3.5 px-4 rounded-xl transition-all duration-200",
                                                 isActive
@@ -298,16 +299,16 @@ export function Header() {
                                     </motion.div>
                                 );
                             })}
-                            
+
                             {/* Mobile Socials */}
-                            <motion.div 
+                            <motion.div
                                 className="pt-4 mt-4 border-t border-stock-border"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.2 }}
                             >
                                 <div className="flex items-center justify-center gap-4">
-                                    <a 
+                                    <a
                                         href="https://github.com/natlee"
                                         target="_blank"
                                         rel="noopener noreferrer"
@@ -316,7 +317,7 @@ export function Header() {
                                         <Github size={18} />
                                         <span className="text-sm font-medium">GitHub</span>
                                     </a>
-                                    <a 
+                                    <a
                                         href="https://www.linkedin.com/in/nat-lee-726525ba/"
                                         target="_blank"
                                         rel="noopener noreferrer"
@@ -326,7 +327,7 @@ export function Header() {
                                         <span className="text-sm font-medium">LinkedIn</span>
                                     </a>
                                 </div>
-                                
+
                                 {/* Status Badge Mobile */}
                                 <div className="flex justify-center mt-4">
                                     <div className="flex items-center gap-2 px-4 py-2 bg-stock-green/10 border border-stock-green/30 rounded-xl">
@@ -341,6 +342,9 @@ export function Header() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Ticker Tape - Sticky with Header */}
+            {showTicker && <TickerTape />}
         </header>
     );
 }

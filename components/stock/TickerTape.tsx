@@ -13,11 +13,11 @@ interface TickerItem {
 
 export function TickerTape() {
     // Flatten all skills into ticker items
-    const allSkills = skillsData.flatMap(category => 
+    const allSkills = skillsData.flatMap(category =>
         category.skills.map(skill => skill.name)
     );
 
-    const [tickers, setTickers] = useState<TickerItem[]>(() => 
+    const [tickers, setTickers] = useState<TickerItem[]>(() =>
         allSkills.map(skill => ({
             symbol: skill.replace(/\s+/g, '').toUpperCase().slice(0, 6),
             price: 50 + Math.random() * 200,
@@ -50,30 +50,29 @@ export function TickerTape() {
                     animate={{ x: "-50%" }}
                     transition={{
                         ease: "linear",
-                        duration: 30,
+                        duration: 120,
                         repeat: Infinity,
                     }}
                 >
                     {duplicatedTickers.map((ticker, index) => {
                         const isPositive = ticker.change >= 0;
-                        
+
                         return (
-                            <div 
-                                key={index} 
+                            <div
+                                key={index}
                                 className="ticker-item border-r border-stock-border/50 last:border-r-0"
                             >
                                 {/* Symbol */}
                                 <span className="ticker-symbol">{ticker.symbol}</span>
-                                
+
                                 {/* Price */}
                                 <span className="ticker-price">
                                     ${ticker.price.toFixed(2)}
                                 </span>
-                                
+
                                 {/* Change */}
-                                <span className={`flex items-center gap-1 ${
-                                    isPositive ? 'ticker-change-up' : 'ticker-change-down'
-                                }`}>
+                                <span className={`flex items-center gap-1 ${isPositive ? 'ticker-change-up' : 'ticker-change-down'
+                                    }`}>
                                     <span className="text-[10px]">
                                         {isPositive ? '▲' : '▼'}
                                     </span>
@@ -83,13 +82,12 @@ export function TickerTape() {
                                 </span>
 
                                 {/* Volume indicator (desktop only) */}
-                                <span className={`hidden lg:inline-block text-[10px] px-1.5 py-0.5 rounded ${
-                                    ticker.volume === 'HIGH' 
-                                        ? 'bg-stock-green/20 text-stock-green' 
-                                        : ticker.volume === 'MED'
+                                <span className={`hidden lg:inline-block text-[10px] px-1.5 py-0.5 rounded ${ticker.volume === 'HIGH'
+                                    ? 'bg-stock-green/20 text-stock-green'
+                                    : ticker.volume === 'MED'
                                         ? 'bg-stock-gold/20 text-stock-gold'
                                         : 'bg-stock-muted/20 text-stock-muted'
-                                }`}>
+                                    }`}>
                                     {ticker.volume}
                                 </span>
                             </div>

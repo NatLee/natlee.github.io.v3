@@ -6,6 +6,8 @@ import { experienceData } from "@/data/experience";
 import { skillsData } from "@/data/skills";
 import { projectsData } from "@/data/projects";
 import Image from "next/image";
+import { ImageCarousel } from "./ImageCarousel";
+import { aboutImages } from "@/data/about_images";
 import {
     Building2,
     MapPin,
@@ -35,12 +37,12 @@ export function StockProfile() {
             {/* Hero Banner */}
             <div className="relative rounded-2xl overflow-hidden mb-6">
                 {/* Background Pattern */}
-                <div className="absolute inset-0 bg-gradient-to-br from-stock-green/20 via-stock-accent/10 to-stock-panel" />
-                <div className="absolute inset-0 opacity-30">
+                <div className="absolute inset-0 bg-gradient-to-br from-stock-green/5 via-stock-accent/5 to-stock-panel" />
+                <div className="absolute inset-0 opacity-10">
                     <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                         <defs>
                             <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(34,197,94,0.2)" strokeWidth="0.5"/>
+                                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(34,197,94,0.2)" strokeWidth="0.5" />
                             </pattern>
                         </defs>
                         <rect width="100" height="100" fill="url(#grid)" />
@@ -64,7 +66,7 @@ export function StockProfile() {
                                 <Zap size={20} className="text-stock-bg" />
                             </div>
                         </div>
-                        
+
                         {/* Info */}
                         <div className="flex-1 text-center md:text-left">
                             <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2">
@@ -76,7 +78,7 @@ export function StockProfile() {
                                     NL.TECH
                                 </span>
                             </div>
-                            
+
                             <p className="text-xl text-stock-green font-medium mb-4">
                                 {personalInfo.title}
                             </p>
@@ -128,12 +130,20 @@ export function StockProfile() {
                 </div>
             </div>
 
-            {/* Stats & Info Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <StatCard icon={<Calendar size={20} />} value={`${yearsInMarket}+`} label="Years Experience" color="green" />
-                <StatCard icon={<Briefcase size={20} />} value={experienceData.length.toString()} label="Companies" color="accent" />
-                <StatCard icon={<Zap size={20} />} value={totalSkills.toString()} label="Technologies" color="gold" />
-                <StatCard icon={<Award size={20} />} value={`${totalProjects}+`} label="Projects" color="green" />
+            {/* Middle Section: Carousel & Stats */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                {/* Carousel - Takes 2 columns */}
+                <div className="lg:col-span-2">
+                    <ImageCarousel images={aboutImages} />
+                </div>
+
+                {/* Stats Grid - Takes 1 column */}
+                <div className="grid grid-cols-2 gap-4 h-full content-start">
+                    <StatCard icon={<Calendar size={20} />} value={`${yearsInMarket}+`} label="Years Exp" color="green" />
+                    <StatCard icon={<Briefcase size={20} />} value={experienceData.length.toString()} label="Companies" color="accent" />
+                    <StatCard icon={<Zap size={20} />} value={totalSkills.toString()} label="Tech Stack" color="gold" />
+                    <StatCard icon={<Award size={20} />} value={`${totalProjects}+`} label="Projects" color="green" />
+                </div>
             </div>
 
             {/* About & Current Role */}
@@ -144,13 +154,13 @@ export function StockProfile() {
                     <p className="text-stock-muted leading-relaxed mb-6">
                         {personalInfo.bio}
                     </p>
-                    
+
                     {/* Interests */}
                     <div>
                         <h4 className="text-sm text-stock-muted font-mono mb-3">INTERESTS & FOCUS AREAS</h4>
                         <div className="flex flex-wrap gap-2">
                             {personalInfo.interests.map((interest, index) => (
-                                <span 
+                                <span
                                     key={index}
                                     className="text-sm px-3 py-1.5 bg-stock-border/50 text-stock-muted rounded-lg hover:text-stock-text hover:bg-stock-border transition-colors"
                                 >
@@ -180,19 +190,19 @@ export function StockProfile() {
                     <div className="stock-card">
                         <div className="text-xs text-stock-muted font-mono mb-3">CONNECT</div>
                         <div className="space-y-2">
-                            <SocialLink 
+                            <SocialLink
                                 href="https://github.com/natlee"
                                 icon={<Github size={18} />}
                                 label="GitHub"
                                 username="@natlee"
                             />
-                            <SocialLink 
+                            <SocialLink
                                 href="https://www.linkedin.com/in/nat-lee-726525ba/"
                                 icon={<Linkedin size={18} />}
                                 label="LinkedIn"
                                 username="Nat Lee"
                             />
-                            <SocialLink 
+                            <SocialLink
                                 href={`mailto:${personalInfo.email}`}
                                 icon={<Mail size={18} />}
                                 label="Email"
@@ -206,14 +216,14 @@ export function StockProfile() {
     );
 }
 
-function StatCard({ 
-    icon, 
-    value, 
-    label, 
-    color 
-}: { 
-    icon: React.ReactNode; 
-    value: string; 
+function StatCard({
+    icon,
+    value,
+    label,
+    color
+}: {
+    icon: React.ReactNode;
+    value: string;
     label: string;
     color: "green" | "accent" | "gold";
 }) {
@@ -232,15 +242,15 @@ function StatCard({
     );
 }
 
-function SocialLink({ 
-    href, 
-    icon, 
-    label, 
-    username 
-}: { 
-    href: string; 
-    icon: React.ReactNode; 
-    label: string; 
+function SocialLink({
+    href,
+    icon,
+    label,
+    username
+}: {
+    href: string;
+    icon: React.ReactNode;
+    label: string;
     username: string;
 }) {
     return (
