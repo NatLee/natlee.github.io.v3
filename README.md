@@ -1,6 +1,6 @@
 # Nat Lee Portfolio | Financial Terminal
 
-<img width="1225" height="750" alt="image" src="https://github.com/user-attachments/assets/5d2d96d4-e7b5-4960-902f-6e6294c8583e" />
+![cover](./docs/cover.png)
 
 > natlee.github.io.v3
 
