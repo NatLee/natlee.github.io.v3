@@ -53,8 +53,8 @@ export function Header({ showTicker = false }: { showTicker?: boolean }) {
         <header className={cn(
             "fixed top-0 w-full z-50 transition-all duration-500",
             isScrolled
-                ? "bg-stock-bg/90 backdrop-blur-xl border-b border-stock-border/50 shadow-lg shadow-black/10"
-                : "bg-transparent"
+                ? "bg-stock-bg/95 backdrop-blur-2xl border-b border-stock-border/60 shadow-lg shadow-black/20"
+                : "bg-stock-bg/80 backdrop-blur-xl border-b border-stock-border/30"
         )}>
             {/* Animated top accent line */}
             <div className="absolute top-0 left-0 right-0 h-[2px] overflow-hidden">
@@ -260,7 +260,7 @@ export function Header({ showTicker = false }: { showTicker?: boolean }) {
             <AnimatePresence>
                 {isMenuOpen && (
                     <motion.div
-                        className="md:hidden absolute top-full left-0 right-0 bg-stock-bg/98 backdrop-blur-xl border-b border-stock-border"
+                        className="md:hidden absolute top-full left-0 right-0 bg-stock-panel border-b-2 border-stock-green/40 shadow-2xl shadow-black/50"
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}

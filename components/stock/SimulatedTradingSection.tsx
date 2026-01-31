@@ -262,6 +262,7 @@ export function SimulatedTradingSection() {
 
     const [showMA, setShowMA] = useState(true);
     const [showFib, setShowFib] = useState(true);
+    const [isMobile, setIsMobile] = useState(false);
 
     const [aiState, setAiState] = useState<"idle" | "scanning" | "analyzed">("idle");
     const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -278,6 +279,14 @@ export function SimulatedTradingSection() {
     useEffect(() => {
         setLogs([{ text: t.logReady, type: "info", time: new Date().toLocaleTimeString() }]);
     }, [lang]);
+
+    // Mobile detection for responsive chart
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 640);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const handleReset = () => {
         historyRef.current = [];
@@ -655,7 +664,14 @@ export function SimulatedTradingSection() {
             canvas.width = rect.width * dpr; canvas.height = rect.height * dpr; ctx.scale(dpr, dpr);
         }
         const width = rect.width; const height = rect.height;
-        const paddingRight = 65;
+
+        // Responsive parameters
+        const paddingRight = isMobile ? 45 : 65;
+        const viewCount = isMobile ? 30 : 60;
+        const gridLineCount = isMobile ? 4 : 6;
+        const fontSize = isMobile ? 9 : 10;
+        const markerHeight = isMobile ? 14 : 18;
+
         const chartWidth = width - paddingRight;
 
         ctx.fillStyle = "#09090b"; ctx.fillRect(0, 0, width, height);
@@ -666,7 +682,6 @@ export function SimulatedTradingSection() {
         if (currentCandleRef.current) allCandles.push(currentCandleRef.current);
         if (allCandles.length === 0) return;
 
-        const viewCount = 60;
         const startIndex = Math.max(0, allCandles.length - viewCount);
         const visibleCandles = allCandles.slice(startIndex);
 
@@ -680,21 +695,24 @@ export function SimulatedTradingSection() {
 
         const candleWidth = (chartWidth / viewCount) * 0.6;
         const candleSpacing = chartWidth / viewCount;
-        const getX = (i: number) => i * candleSpacing + (candleSpacing / 2); // 0-based for drawing
+        const getX = (i: number) => i * candleSpacing + (candleSpacing / 2);
         const getY = (p: number) => chartHeight - ((p - minPrice) / priceRange) * chartHeight + 20;
 
+        // Grid lines - responsive count
         ctx.strokeStyle = "#18181b"; ctx.lineWidth = 1; ctx.beginPath();
-        for (let i = 0; i < 6; i++) {
-            const y = (chartHeight / 6) * i + 20;
+        for (let i = 0; i <= gridLineCount; i++) {
+            const y = (chartHeight / gridLineCount) * i + 20;
             ctx.moveTo(0, y);
             ctx.lineTo(chartWidth, y);
 
-            // Y-Axis Labels
-            const priceLevel = maxPrice - (i * (maxPrice - minPrice) / 6);
-            ctx.fillStyle = "#52525b"; // zinc-600
-            ctx.font = "10px monospace";
-            ctx.textAlign = "left";
-            ctx.fillText(priceLevel.toFixed(2), chartWidth + 6, y + 3);
+            // Y-Axis Labels - skip every other on mobile
+            if (!isMobile || i % 2 === 0) {
+                const priceLevel = maxPrice - (i * (maxPrice - minPrice) / gridLineCount);
+                ctx.fillStyle = "#52525b";
+                ctx.font = `${fontSize}px monospace`;
+                ctx.textAlign = "left";
+                ctx.fillText(priceLevel.toFixed(isMobile ? 1 : 2), chartWidth + 4, y + 3);
+            }
         }
         ctx.stroke();
 
@@ -739,11 +757,11 @@ export function SimulatedTradingSection() {
             if (relativeIndex >= 0 && relativeIndex < viewCount) {
                 const x = getX(relativeIndex);
                 const isTop = marker.type === "SHORT" || marker.type === "ALERT";
-                const y = getY(marker.price) + (isTop ? -35 : 35);
+                const y = getY(marker.price) + (isTop ? -25 : 25);
                 ctx.beginPath(); ctx.strokeStyle = marker.type === "ALERT" ? "#f59e0b" : (marker.type === "LONG" ? "#10b981" : "#f43f5e");
                 ctx.setLineDash([2, 2]); ctx.moveTo(x, y); ctx.lineTo(x, getY(marker.price)); ctx.stroke(); ctx.setLineDash([]);
-                const labelText = marker.label; ctx.font = "bold 10px monospace";
-                const w = ctx.measureText(labelText).width + 12; const h = 18;
+                const labelText = marker.label; ctx.font = `bold ${fontSize}px monospace`;
+                const w = ctx.measureText(labelText).width + 10; const h = markerHeight;
                 ctx.fillStyle = ctx.strokeStyle; ctx.beginPath();
                 if (isTop) { ctx.moveTo(x, y + 5); ctx.lineTo(x - 4, y); ctx.lineTo(x + 4, y); }
                 else { ctx.moveTo(x, y - 5); ctx.lineTo(x - 4, y); ctx.lineTo(x + 4, y); } ctx.fill();
@@ -773,7 +791,7 @@ export function SimulatedTradingSection() {
             }));
         }
 
-    }, [position, showMA, showFib, lang]);
+    }, [position, showMA, showFib, lang, isMobile]);
 
     useEffect(() => {
         const loop = () => {
@@ -815,19 +833,27 @@ export function SimulatedTradingSection() {
         <div className="w-full max-w-7xl mx-auto p-4 bg-zinc-950 font-sans text-zinc-300 select-none mb-24">
 
             {/* Header */}
-            <div className="flex justify-between items-center mb-4 border-b border-zinc-800 pb-3">
-                <div className="flex items-center gap-3">
-                    <Activity className="text-indigo-500" size={20} />
-                    <span className="text-lg font-bold text-white tracking-wide font-mono">{t.title}</span>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 border-b border-zinc-800 pb-3 gap-3 sm:gap-0">
+                <div className="flex items-center gap-2 sm:gap-3">
+                    <Activity className="text-indigo-500" size={18} />
+                    <span className="text-base sm:text-lg font-bold text-white tracking-wide font-mono">{t.title}</span>
                 </div>
-                <div className="flex items-center gap-6">
-                    <div className="flex gap-4 text-xs font-mono">
-                        <div className="flex flex-col items-end"><span className="text-zinc-500">{t.equity}</span><span className="text-white font-bold">${balance.toLocaleString()}</span></div>
-                        <div className="flex flex-col items-end"><span className="text-zinc-500">{t.pnl}</span><span className={`${pnl >= 0 ? 'text-emerald-500' : 'text-rose-500'} font-bold`}>{pnl >= 0 ? '+' : ''}{pnl.toFixed(2)}</span></div>
+                <div className="flex items-center gap-3 sm:gap-6 w-full sm:w-auto justify-between sm:justify-end">
+                    <div className="flex gap-2 sm:gap-4 text-[10px] sm:text-xs font-mono">
+                        <div className="flex flex-col items-end">
+                            <span className="text-zinc-500 hidden sm:inline">{t.equity}</span>
+                            <span className="text-white font-bold">${balance.toLocaleString()}</span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                            <span className="text-zinc-500 hidden sm:inline">{t.pnl}</span>
+                            <span className={`${pnl >= 0 ? 'text-emerald-500' : 'text-rose-500'} font-bold`}>{pnl >= 0 ? '+' : ''}{pnl.toFixed(2)}</span>
+                        </div>
                     </div>
-                    <div className="h-6 w-px bg-zinc-800"></div>
-                    <button onClick={handleReset} className="p-2 rounded-full bg-zinc-900 border border-zinc-700 hover:border-red-500 hover:text-red-500 hover:bg-red-500/10 transition-all text-zinc-500" title={t.reset}><RefreshCw size={14} /></button>
-                    <button onClick={() => setLang(prev => prev === 'en' ? 'zh' : 'en')} className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-zinc-900 border border-zinc-700 hover:border-zinc-500 text-xs font-bold transition-all"><Globe size={14} className="text-indigo-400" />{lang === 'en' ? 'EN' : '中'}</button>
+                    <div className="h-6 w-px bg-zinc-800 hidden sm:block"></div>
+                    <div className="flex items-center gap-2">
+                        <button onClick={handleReset} className="p-2 rounded-full bg-zinc-900 border border-zinc-700 hover:border-red-500 hover:text-red-500 hover:bg-red-500/10 transition-all text-zinc-500" title={t.reset}><RefreshCw size={14} /></button>
+                        <button onClick={() => setLang(prev => prev === 'en' ? 'zh' : 'en')} className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full bg-zinc-900 border border-zinc-700 hover:border-zinc-500 text-xs font-bold transition-all"><Globe size={14} className="text-indigo-400" /><span className="hidden sm:inline">{lang === 'en' ? 'EN' : '中'}</span></button>
+                    </div>
                 </div>
             </div>
 
@@ -839,22 +865,19 @@ export function SimulatedTradingSection() {
                     {/* Chart */}
                     <div className="h-[400px] lg:h-[450px] bg-zinc-900 border border-zinc-800 rounded-sm relative overflow-hidden group">
 
-                        <div className="absolute top-3 right-3 flex gap-2 z-10">
-                            <button onClick={() => setShowMA(!showMA)} className={`p-1.5 rounded text-xs font-bold border flex items-center gap-1 transition-all ${showMA ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300' : 'bg-zinc-800 border-zinc-700 text-zinc-500'}`}>{showMA ? <Eye size={12} /> : <EyeOff size={12} />} {t.ma}</button>
-                            <button onClick={() => setShowFib(!showFib)} className={`p-1.5 rounded text-xs font-bold border flex items-center gap-1 transition-all ${showFib ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-300' : 'bg-zinc-800 border-zinc-700 text-zinc-500'}`}>{showFib ? <Layers size={12} /> : <Layers size={12} />} {t.fib}</button>
-                        </div>
+
                         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full cursor-crosshair" />
-                        <div className="absolute top-3 left-3 flex gap-2 items-center opacity-80 z-20">
-                            <div className="bg-yellow-500/20 text-yellow-500 border border-yellow-500/50 px-2 py-0.5 rounded text-xs font-bold font-mono">
+                        <div className="absolute top-3 left-3 flex flex-wrap gap-2 items-center opacity-80 z-20">
+                            <div className="bg-yellow-500/20 text-yellow-500 border border-yellow-500/50 px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold font-mono">
                                 {t.pair}
                             </div>
                             {candleDisplay && (
-                                <div className="flex gap-4 text-xs font-mono text-zinc-300 font-bold bg-black/40 px-2 py-0.5 rounded backdrop-blur-sm border border-white/10">
+                                <div className="flex flex-wrap gap-x-2 sm:gap-x-4 gap-y-1 text-[9px] sm:text-xs font-mono text-zinc-300 font-bold bg-black/50 px-2 py-1 rounded backdrop-blur-sm border border-white/10">
                                     <span>O: <span className="text-white">{candleDisplay.o}</span></span>
                                     <span>H: <span className="text-white">{candleDisplay.h}</span></span>
                                     <span>L: <span className="text-white">{candleDisplay.l}</span></span>
                                     <span>C: <span className={Number(candleDisplay.c) >= Number(candleDisplay.o) ? "text-emerald-400" : "text-rose-400"}>{candleDisplay.c}</span></span>
-                                    <span className="text-zinc-400">V: <span className="text-zinc-200">{candleDisplay.v}</span></span>
+                                    <span className="text-zinc-400 hidden sm:inline">V: <span className="text-zinc-200">{candleDisplay.v}</span></span>
                                 </div>
                             )}
                         </div>
@@ -863,6 +886,24 @@ export function SimulatedTradingSection() {
 
                 {/* Right Controls */}
                 <div className="lg:col-span-1 flex flex-col gap-3 h-full">
+
+                    {/* Indicator Toggle Buttons - Above order book */}
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setShowMA(!showMA)}
+                            className={`flex-1 px-2.5 py-2 rounded text-[10px] sm:text-xs font-bold border flex items-center justify-center gap-1.5 transition-all ${showMA ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300' : 'bg-zinc-900 border-zinc-700 text-zinc-500 hover:border-zinc-600'}`}
+                        >
+                            {showMA ? <Eye size={14} /> : <EyeOff size={14} />}
+                            <span className="whitespace-nowrap">{t.ma}</span>
+                        </button>
+                        <button
+                            onClick={() => setShowFib(!showFib)}
+                            className={`flex-1 px-2.5 py-2 rounded text-[10px] sm:text-xs font-bold border flex items-center justify-center gap-1.5 transition-all ${showFib ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-300' : 'bg-zinc-900 border-zinc-700 text-zinc-500 hover:border-zinc-600'}`}
+                        >
+                            <Layers size={14} />
+                            <span className="whitespace-nowrap">{t.fib}</span>
+                        </button>
+                    </div>
 
                     <div className="bg-zinc-900 border border-zinc-800 rounded-sm p-2 flex flex-col h-[200px] lg:h-[240px] transition-all">
 

@@ -267,23 +267,23 @@ export function ExperienceChart() {
             {/* Chart Section */}
             <div className="chart-container">
                 {/* Terminal-style Header Bar */}
-                <div className="chart-header-bar">
-                    <div className="chart-symbol">
-                        <h2 className="chart-symbol-name">CAREER.NAT</h2>
+                <div className="chart-header-bar flex-col sm:flex-row gap-3 sm:gap-0">
+                    <div className="chart-symbol flex-wrap">
+                        <h2 className="chart-symbol-name text-base sm:text-xl">CAREER.NAT</h2>
                         <span className="chart-symbol-badge bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
                             BULLISH
                         </span>
-                        <span className="chart-symbol-badge bg-slate-800 text-slate-400 border-slate-700">
+                        <span className="chart-symbol-badge bg-slate-800 text-slate-400 border-slate-700 hidden sm:inline-block">
                             EXPERIENCE
                         </span>
                     </div>
-                    <div className="flex items-center gap-4">
-                        {/* Time Range Controls */}
-                        <div className="time-range-controls">
-                            <button className="time-range-btn">1Y</button>
-                            <button className="time-range-btn">3Y</button>
-                            <button className="time-range-btn">5Y</button>
-                            <button className="time-range-btn active">ALL</button>
+                    <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                        {/* Time Range Controls - Responsive */}
+                        <div className="time-range-controls flex-wrap">
+                            <button className="time-range-btn min-h-[44px] min-w-[40px] sm:min-h-0 sm:min-w-0">1Y</button>
+                            <button className="time-range-btn min-h-[44px] min-w-[40px] sm:min-h-0 sm:min-w-0">3Y</button>
+                            <button className="time-range-btn min-h-[44px] min-w-[40px] sm:min-h-0 sm:min-w-0">5Y</button>
+                            <button className="time-range-btn min-h-[44px] min-w-[40px] sm:min-h-0 sm:min-w-0 active">ALL</button>
                         </div>
                         {/* Indicator Toggles */}
                         <div className="indicator-toggles hidden md:flex">
@@ -375,7 +375,7 @@ export function ExperienceChart() {
             {/* Recent History List */}
             <div>
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
                         <FaHistory className="text-emerald-500" />
                         Trade History
                     </h3>
@@ -383,7 +383,34 @@ export function ExperienceChart() {
                         {experienceData.length} POSITIONS
                     </span>
                 </div>
-                <div className="trade-history-table max-h-[280px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+
+                {/* Mobile Card View */}
+                <div className="md:hidden space-y-3 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+                    {experienceData.map((exp) => (
+                        <div
+                            key={exp.id}
+                            className={cn(
+                                "trade-history-card p-4 rounded-lg border border-slate-800 hover:border-emerald-500/30 transition-all cursor-pointer",
+                                selectedJobId === exp.id ? "bg-slate-800/80 border-emerald-500/50" : "bg-slate-900/50"
+                            )}
+                            onClick={() => handleListClick(exp.id)}
+                        >
+                            <div className="flex items-start justify-between mb-2">
+                                <span className="text-xs font-mono text-slate-500 bg-slate-800 px-2 py-0.5 rounded">
+                                    {exp.start} - {exp.end}
+                                </span>
+                                <span className="text-[10px] font-mono px-2 py-1 bg-emerald-900/30 text-emerald-400 rounded border border-emerald-500/30">
+                                    VIEW
+                                </span>
+                            </div>
+                            <h4 className="text-sm font-semibold text-white mb-1">{exp.company}</h4>
+                            <p className="text-xs text-slate-400">{exp.title}</p>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="trade-history-table max-h-[280px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent hidden md:block">
                     <table className="w-full text-left text-sm text-slate-400">
                         <thead className="bg-slate-950 text-slate-200 font-mono uppercase text-xs sticky top-0 z-10">
                             <tr>

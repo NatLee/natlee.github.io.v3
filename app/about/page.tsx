@@ -41,17 +41,6 @@ export default function AboutPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-[10px] font-mono text-stock-accent bg-stock-accent/10 px-2 py-1 rounded border border-stock-accent/20">
-              INVESTOR PROFILE
-            </span>
-            <span className="text-[10px] font-mono text-stock-green bg-stock-green/10 px-2 py-1 rounded border border-stock-green/20 flex items-center gap-1">
-              <Shield size={10} /> KYC VERIFIED
-            </span>
-            <span className="text-[10px] font-mono text-stock-muted">
-              Last updated: {new Date().toLocaleDateString()}
-            </span>
-          </div>
           <h1 className="text-2xl md:text-3xl font-bold text-stock-text mb-1">
             Profile Dashboard
           </h1>
@@ -334,8 +323,8 @@ export default function AboutPage() {
                     key={idx}
                     onClick={() => setCurrentImageIndex(idx)}
                     className={`relative w-16 h-12 rounded overflow-hidden flex-shrink-0 border-2 transition-all ${idx === currentImageIndex
-                        ? 'border-stock-green shadow-stock-green'
-                        : 'border-transparent opacity-60 hover:opacity-100'
+                      ? 'border-stock-green shadow-stock-green'
+                      : 'border-transparent opacity-60 hover:opacity-100'
                       }`}
                   >
                     <Image src={img.url} alt={img.alt} fill className="object-cover" unoptimized />

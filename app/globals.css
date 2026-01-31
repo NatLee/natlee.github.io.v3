@@ -174,27 +174,27 @@
   /* Experience Chart Premium Container */
   .chart-container {
     @apply relative rounded-xl overflow-hidden;
-    background: rgba(12, 15, 25, 0.94);
+    background: rgba(9, 9, 11, 0.95);
     backdrop-filter: blur(32px) saturate(180%);
     -webkit-backdrop-filter: blur(32px) saturate(180%);
-    border: 1px solid rgba(34, 197, 94, 0.25);
+    border: 1px solid rgba(34, 197, 94, 0.2);
     box-shadow:
-      0 0 40px rgba(34, 197, 94, 0.1),
+      0 0 30px rgba(34, 197, 94, 0.08),
       0 8px 32px rgba(0, 0, 0, 0.6),
-      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 
   .chart-container::before {
     content: '';
     @apply absolute top-0 left-0 right-0 h-0.5;
-    background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.6), transparent);
+    background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.5), transparent);
   }
 
   /* Chart Header Bar */
   .chart-header-bar {
-    @apply flex items-center justify-between px-4 py-2.5 border-b;
-    background: rgba(8, 10, 18, 0.96);
-    border-color: rgba(51, 65, 85, 0.5);
+    @apply flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 border-b;
+    background: rgba(9, 9, 11, 0.98);
+    border-color: rgba(51, 65, 85, 0.4);
   }
 
   .chart-symbol {
@@ -215,7 +215,8 @@
   }
 
   .time-range-btn {
-    @apply px-2.5 py-1 text-[10px] font-mono text-slate-500 rounded transition-all;
+    @apply px-2 sm:px-2.5 py-1 text-[10px] font-mono text-slate-500 rounded transition-all;
+    @apply flex items-center justify-center;
   }
 
   .time-range-btn:hover {
@@ -246,36 +247,43 @@
   /* Trade History Table */
   .trade-history-table {
     @apply rounded-xl overflow-hidden;
-    background: rgba(15, 23, 42, 0.7);
+    background: rgba(12, 12, 18, 0.85);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(51, 65, 85, 0.5);
+    border: 1px solid rgba(51, 65, 85, 0.4);
   }
 
   .trade-history-table thead {
-    background: rgba(15, 23, 42, 0.95);
+    background: rgba(9, 9, 11, 0.98);
   }
 
   .trade-history-table tbody tr:hover {
-    background: rgba(51, 65, 85, 0.3);
+    background: rgba(51, 65, 85, 0.25);
+  }
+
+  /* Trade History Card (Mobile) */
+  .trade-history-card {
+    background: rgba(12, 12, 18, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   /* Job Details Card */
   .job-details-card {
     @apply relative rounded-xl overflow-hidden;
-    background: rgba(15, 23, 42, 0.7);
+    background: rgba(12, 12, 18, 0.88);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(51, 65, 85, 0.5);
+    border: 1px solid rgba(51, 65, 85, 0.4);
     box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.4),
+      0 8px 32px rgba(0, 0, 0, 0.45),
       inset 0 1px 0 rgba(255, 255, 255, 0.03);
   }
 
   .job-details-card::before {
     content: '';
     @apply absolute top-0 left-0 right-0 h-px;
-    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.4), transparent);
+    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.35), transparent);
   }
 }
 
